@@ -12,7 +12,7 @@ import {
 import AdminModal from "./AdminModal";
 import { useAuth } from "../../lib/AuthProvider";
 
-interface AdminData {
+export interface AdminData {
   _id: string;
   firstName: string;
   lastName: string;

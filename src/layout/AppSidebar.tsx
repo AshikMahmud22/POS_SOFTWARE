@@ -74,7 +74,7 @@ const AppSidebar: React.FC = () => {
     <>
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[45] lg:hidden"
+          className="fixed inset-0 bg-black/50 z-100 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
