@@ -27,10 +27,11 @@ const ShopFormModal: React.FC<FormModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      const scrollBarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = `${scrollBarWidth}px`;
-      
+
       setFormData({
         ...initialData,
         adminEmail: user?.email || "",
@@ -50,16 +51,25 @@ const ShopFormModal: React.FC<FormModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    const numericFields = ["quantity", "productValue", "previousDue", "deposit", "truckFair"];
+    const numericFields = [
+      "quantity",
+      "productValue",
+      "previousDue",
+      "deposit",
+      "truckFair",
+    ];
 
     setFormData((prev) => {
       const updated = {
         ...prev,
         [name]: numericFields.includes(name) ? Number(value) : value,
       };
-      updated.totalCost = Number(updated.quantity) * Number(updated.productValue);
+      updated.totalCost =
+        Number(updated.quantity) * Number(updated.productValue);
       updated.restTotalAmount =
         updated.totalCost +
         Number(updated.previousDue) +
@@ -104,12 +114,18 @@ const ShopFormModal: React.FC<FormModalProps> = ({
             {isEditing ? <Edit3 size={22} /> : <PlusCircle size={22} />}
             {isEditing ? "Update Entry" : "New Entry"}
           </h2>
-          <button onClick={onClose} className="hover:rotate-90 transition-transform">
+          <button
+            onClick={onClose}
+            className="hover:rotate-90 transition-transform"
+          >
             <X size={28} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5 overflow-y-auto max-h-[85vh]">
+        <form
+          onSubmit={handleSubmit}
+          className="p-8 space-y-5 overflow-y-auto max-h-[85vh]"
+        >
           <div className="space-y-1">
             <label className="text-[10px] font-black text-blue-500 uppercase flex items-center gap-1">
               <User size={12} /> Admin Account
@@ -139,19 +155,31 @@ const ShopFormModal: React.FC<FormModalProps> = ({
               required
             >
               {[
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
               ].map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
           </div>
 
           <input
             type="text"
-            name="cementDetails"
+            name="productDetails"
             placeholder="Product Details"
-            value={formData.cementDetails}
+            value={formData.productDetails}
             onChange={handleInputChange}
             className="w-full p-3.5 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white font-bold"
             required
@@ -178,27 +206,59 @@ const ShopFormModal: React.FC<FormModalProps> = ({
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
-              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">Truck</label>
-              <input type="number" name="truckFair" value={formData.truckFair || ""} onChange={handleInputChange} className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold" />
+              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">
+                Truck
+              </label>
+              <input
+                type="number"
+                name="truckFair"
+                value={formData.truckFair || ""}
+                onChange={handleInputChange}
+                className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold"
+              />
             </div>
             <div className="space-y-1">
-              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">Prev Due</label>
-              <input type="number" name="previousDue" value={formData.previousDue || ""} onChange={handleInputChange} className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold" />
+              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">
+                Prev Due
+              </label>
+              <input
+                type="number"
+                name="previousDue"
+                value={formData.previousDue || ""}
+                onChange={handleInputChange}
+                className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold"
+              />
             </div>
             <div className="space-y-1">
-              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">Deposit</label>
-              <input type="number" name="deposit" value={formData.deposit || ""} onChange={handleInputChange} className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold" />
+              <label className="text-[8px] font-bold text-gray-400 uppercase ml-2">
+                Deposit
+              </label>
+              <input
+                type="number"
+                name="deposit"
+                value={formData.deposit || ""}
+                onChange={handleInputChange}
+                className="w-full p-3 border dark:border-gray-700 rounded-2xl bg-gray-50 dark:bg-gray-800 dark:text-white text-sm font-bold"
+              />
             </div>
           </div>
 
           <div className="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-[1.5rem] flex justify-between items-center border border-blue-100 dark:border-blue-900/30">
             <div>
-              <p className="text-[10px] font-black text-blue-400 uppercase">Total Rest Amount</p>
-              <p className="text-2xl font-black text-blue-950 dark:text-blue-300 italic">৳ {formData.restTotalAmount}</p>
+              <p className="text-[10px] font-black text-blue-400 uppercase">
+                Total Rest Amount
+              </p>
+              <p className="text-2xl font-black text-blue-950 dark:text-blue-300 italic">
+                ৳ {formData.restTotalAmount}
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black text-gray-400 uppercase">Authorised By</p>
-              <p className="text-[11px] font-black text-gray-600 dark:text-gray-400">{formData.adminName || "ADMIN"}</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase">
+                Authorised By
+              </p>
+              <p className="text-[11px] font-black text-gray-600 dark:text-gray-400">
+                {formData.adminName || "ADMIN"}
+              </p>
             </div>
           </div>
 
@@ -215,7 +275,13 @@ const ShopFormModal: React.FC<FormModalProps> = ({
               disabled={loading}
               className="flex-[2] py-4 bg-blue-950 text-white rounded-2xl font-black shadow-xl flex items-center justify-center gap-3 uppercase text-xs transition-all hover:bg-blue-900 active:scale-95 disabled:opacity-70"
             >
-              {loading ? <span className="animate-pulse">Processing...</span> : <><Save size={20} /> Save Changes</>}
+              {loading ? (
+                <span className="animate-pulse">Processing...</span>
+              ) : (
+                <>
+                  <Save size={20} /> Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>

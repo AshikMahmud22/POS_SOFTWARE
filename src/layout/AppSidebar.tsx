@@ -1,6 +1,13 @@
 import React, { useCallback, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { ShoppingBag, Store, TrendingUp, Truck, Users } from "lucide-react";
+import {
+  ShoppingBag,
+  Store,
+  TrendingUp,
+  Truck,
+  Users,
+  Trash2,
+} from "lucide-react";
 import { LuSquareDashedKanban } from "react-icons/lu";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../lib/AuthProvider";
@@ -23,6 +30,11 @@ const navItems: NavItem[] = [
     name: "Shop",
     icon: <ShoppingBag size={22} />,
     path: "/shop",
+  },
+  {
+    name: "Shop Trash",
+    icon: <Trash2 size={22} />,
+    path: "/shop-trash",
   },
   {
     name: "Admin Management",
@@ -79,7 +91,7 @@ const AppSidebar: React.FC = () => {
         />
       )}
       <aside
-        className={`fixed mt-16 lg:mt-0 top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-50 
+        className={`fixed mt-16 lg:mt-0 top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-100 
         ${isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
         onMouseEnter={() => !isExpanded && setIsHovered(true)}

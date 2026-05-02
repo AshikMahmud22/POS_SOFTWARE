@@ -1,21 +1,14 @@
 import React from "react";
-import { Trash2, Edit3 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { Edit2, Trash2 } from "lucide-react";
 import API from "../../api/axiosInstance";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+import { toast } from "react-hot-toast";
 
 export interface IShopEntry {
   _id?: string;
   date: string;
   month: string;
   year: string;
-  cementDetails: string;
+  productDetails: string;
   quantity: number;
   productValue: number;
   totalCost: number;
@@ -31,96 +24,147 @@ export interface IShopEntry {
 interface ShopTableProps {
   data: IShopEntry[];
   onEdit: (item: IShopEntry) => void;
-  onDeleteSuccess: () => void;
+  refreshData: () => Promise<void>;
 }
 
-const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, onDeleteSuccess }) => {
-  
-  const sortedData = [...data].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-
-  const handleDeleteRequest = (id: string) => {
+const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
+  const handleMoveToTrash = async (id: string) => {
     toast(
       (t) => (
-        <div className="flex flex-col gap-3 p-2">
-          <span className="text-sm font-bold text-gray-800 dark:text-white">
-            Move entry to trash?
+        <div className="flex flex-col gap-3">
+          <span className="text-sm font-bold text-gray-800">
+            Are you sure you want to move this entry to trash?
           </span>
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-2">
             <button
               onClick={async () => {
                 toast.dismiss(t.id);
                 try {
-                  await API.post(`/shop/move-to-trash/${id}`);
-                  toast.success("Entry moved to trash");
-                  onDeleteSuccess();
+                  const loadingToast = toast.loading("Processing...");
+                  const res = await API.post(`/shop/move-to-trash/${id}`);
+                  toast.dismiss(loadingToast);
+                  if (res.data.success) {
+                    toast.success("Moved to trash successfully", {
+                      duration: 3000,
+                    });
+                    await refreshData();
+                  }
                 } catch {
-                  toast.error("Delete failed");
+                  toast.error("Failed to move entry");
                 }
               }}
-              className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-black uppercase"
+              className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-700 transition-colors"
             >
-              Confirm
+              Yes, Move
             </button>
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="bg-gray-100 px-4 py-1.5 rounded-lg text-xs font-black uppercase dark:text-black"
+              className="bg-gray-200 text-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>
           </div>
         </div>
       ),
-      { position: "top-center", duration: 6000 }
+      { duration: 5000 },
     );
   };
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-      <Table className="w-full text-left min-w-max">
-        <TableHeader className="border-b dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-          <TableRow>
-            <TableCell isHeader className="p-5 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Date/Month</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Details</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Qty</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black uppercase tracking-widest text-center text-blue-600 whitespace-nowrap">Total Cost</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black uppercase tracking-widest text-center text-green-600 whitespace-nowrap">Deposit</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black uppercase tracking-widest text-center text-amber-600 whitespace-nowrap">Due</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black uppercase tracking-widest text-center text-red-600 whitespace-nowrap">Rest Total</TableCell>
-            <TableCell isHeader className="p-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Actions</TableCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedData.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} className="p-10 text-center font-bold text-gray-400 uppercase tracking-widest">No Entries Found</TableCell>
-            </TableRow>
-          ) : (
-            sortedData.map((item) => (
-              <TableRow key={item._id} className="hover:bg-blue-50/10 border-b last:border-0 dark:border-gray-800 transition-colors">
-                <TableCell className="p-5 font-bold dark:text-white whitespace-nowrap">
-                  {item.date} <span className="inline-block ml-1 text-[10px] text-blue-500 font-black uppercase">{item.month}</span>
-                </TableCell>
-                <TableCell className="p-5 font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">{item.cementDetails}</TableCell>
-                <TableCell className="p-5 text-center font-bold dark:text-white whitespace-nowrap">{item.quantity}</TableCell>
-                <TableCell className="p-5 text-center font-black text-blue-900 dark:text-blue-400 whitespace-nowrap">{item.totalCost}</TableCell>
-                <TableCell className="p-5 text-center font-bold text-green-600 whitespace-nowrap">{item.deposit}</TableCell>
-                <TableCell className="p-5 text-center font-bold text-amber-600 whitespace-nowrap">{item.totalCost - item.deposit}</TableCell>
-                <TableCell className="p-5 text-center whitespace-nowrap">
-                  <span className="bg-red-50 dark:bg-red-900/20 text-red-600 px-3 py-1.5 rounded-xl font-black border border-red-100 dark:border-red-900/30 italic">{item.restTotalAmount}</span>
-                </TableCell>
-                <TableCell className="p-5 text-center whitespace-nowrap">
-                  <div className="flex justify-center gap-1">
-                    <button onClick={() => onEdit(item)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"><Edit3 size={16} /></button>
-                    <button onClick={() => handleDeleteRequest(item._id!)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 size={16} /></button>
+    <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+      <table className="w-full text-left border-collapse min-w-[1100px]">
+        <thead>
+          <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
+            <th className="p-4 border-b dark:border-gray-800"> Date</th>
+            <th className="p-4 border-b dark:border-gray-800"> Details</th>
+            <th className="p-4 border-b dark:border-gray-800"> Qty</th>
+            <th className="p-4 border-b dark:border-gray-800"> Value</th>
+            <th className="p-4 border-b dark:border-gray-800"> Total Cost</th>
+            <th className="p-4 border-b dark:border-gray-800 text-red-500">
+              Prev. Due
+            </th>
+            <th className="p-4 border-b dark:border-gray-800 text-green-600">
+              Deposit
+            </th>
+            <th className="p-4 border-b dark:border-gray-800"> Truck Fair</th>
+            <th className="p-4 border-b dark:border-gray-800 text-blue-600">
+              Rest Amount
+            </th>
+            <th className="p-4 border-b dark:border-gray-800">10. Sign</th>
+            <th className="p-4 border-b dark:border-gray-800 text-center">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y dark:divide-gray-800">
+          {data.length > 0 ? (
+            data.map((item) => (
+              <tr
+                key={item._id}
+                className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+              >
+                <td className="p-4 text-sm font-bold dark:text-gray-300 whitespace-nowrap">
+                  {item.date}
+                </td>
+                <td className="p-4 text-sm font-medium dark:text-gray-400">
+                  {item.productDetails}
+                </td>
+                <td className="p-4 text-sm font-bold dark:text-gray-300">
+                  {item.quantity}
+                </td>
+                <td className="p-4 text-sm font-bold dark:text-gray-300">
+                  ৳{item.productValue}
+                </td>
+                <td className="p-4 text-sm font-bold dark:text-gray-300">
+                  ৳{item.totalCost}
+                </td>
+                <td className="p-4 text-sm font-bold text-red-500">
+                  ৳{item.previousDue}
+                </td>
+                <td className="p-4 text-sm font-bold text-green-600">
+                  ৳{item.deposit}
+                </td>
+                <td className="p-4 text-sm font-bold dark:text-gray-300">
+                  ৳{item.truckFair}
+                </td>
+                <td className="p-4 text-sm font-black text-blue-600 dark:text-blue-400">
+                  ৳{item.restTotalAmount}
+                </td>
+                <td className="p-4">
+                  <span className="text-[10px] font-black uppercase px-2 py-1 text-nowrap bg-gray-100 dark:bg-gray-800 rounded-md text-gray-500">
+                    {item.adminName || "ADMIN"}
+                  </span>
+                </td>
+                <td className="p-4">
+                  <div className="flex justify-center gap-2">
+                    <button
+                      onClick={() => onEdit(item)}
+                      className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 rounded-lg transition-all"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => item._id && handleMoveToTrash(item._id)}
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-all"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))
+          ) : (
+            <tr>
+              <td
+                colSpan={11}
+                className="p-10 text-center text-gray-500 font-bold uppercase text-xs"
+              >
+                No entries found
+              </td>
+            </tr>
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -5,22 +5,34 @@ import ShopFormModal from "./ShopFormModal";
 import ShopTable, { IShopEntry } from "./ShopTable";
 import { Pagination } from "../../components/Pagination/Pagination";
 
+interface ApiResponse {
+  success: boolean;
+  data: IShopEntry[];
+}
+
 const ShopPage: React.FC = () => {
   const [entries, setEntries] = useState<IShopEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingData, setEditingData] = useState<IShopEntry | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState({ month: "", year: "2026" });
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [filter, setFilter] = useState<{ month: string; year: string }>({ month: "", year: "" });
+  const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
 
-  const fetchEntries = async () => {
+  const fetchEntries = async (): Promise<void> => {
     try {
       setLoading(true);
-      const res = await API.get("/shop/all-entries");
-      setEntries(res.data);
+      const res = await API.get<ApiResponse>("/shop/get-entries");
+      if (res.data.success) {
+        const data = res.data.data;
+        setEntries(data);
+        if (data.length > 0 && filter.year === "") {
+          const years = [...new Set(data.map((e: IShopEntry) => e.year))].sort().reverse();
+          setFilter(prev => ({ ...prev, year: years[0] }));
+        }
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -30,26 +42,34 @@ const ShopPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-  const filteredEntries = entries.filter(
-    (ent) =>
-      (filter.month === "" || ent.month === filter.month) &&
-      (filter.year === "" || ent.year === filter.year),
+  const availableYears: string[] = Array.from(new Set(entries.map((e: IShopEntry) => e.year))).sort().reverse();
+
+  const availableMonths: string[] = Array.from(
+    new Set(
+      entries
+        .filter((e: IShopEntry) => e.year === filter.year)
+        .map((e: IShopEntry) => e.month)
+    )
+  );
+
+  const filteredEntries: IShopEntry[] = entries.filter(
+    (ent: IShopEntry) =>
+      (filter.year === "" || ent.year === filter.year) &&
+      (filter.month === "" || ent.month === filter.month)
   );
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
-  const currentData = filteredEntries.slice(
+  const totalPages: number = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
+  const currentData: IShopEntry[] = filteredEntries.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const initialEmpty: IShopEntry = {
     date: new Date().toISOString().split("T")[0],
-    month: new Intl.DateTimeFormat("en-US", { month: "long" }).format(
-      new Date(),
-    ),
-    year: "2026",
-    cementDetails: "",
+    month: new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date()),
+    year: new Date().getFullYear().toString(),
+    productDetails: "",
     quantity: 0,
     productValue: 0,
     totalCost: 0,
@@ -62,10 +82,10 @@ const ShopPage: React.FC = () => {
     adminName: "",
   };
 
-  const handleRefresh = () => setRefreshTrigger((prev) => !prev);
+  const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
+    <div className=" md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-black dark:text-white text-blue-950 uppercase tracking-tighter italic">
@@ -80,7 +100,7 @@ const ShopPage: React.FC = () => {
             setEditingData(null);
             setIsModalOpen(true);
           }}
-          className="w-full md:w-auto bg-blue-950 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
+          className="w-auto border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
         >
           <PlusCircle size={20} /> New Entry
         </button>
@@ -93,41 +113,30 @@ const ShopPage: React.FC = () => {
         <div className="flex items-center gap-4">
           <select
             value={filter.year}
-            onChange={(e) => {
-              setFilter({ ...filter, year: e.target.value });
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              setFilter({ year: e.target.value, month: "" });
               setCurrentPage(1);
             }}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm"
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer"
           >
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
+            <option value="">Select Year</option>
+            {availableYears.map((y: string) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
           </select>
+
           <select
             value={filter.month}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
               setFilter({ ...filter, month: e.target.value });
               setCurrentPage(1);
             }}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm"
+            disabled={!filter.year}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
           >
             <option value="">All Months</option>
-            {[
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ].map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+            {availableMonths.map((m: string) => (
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
@@ -141,11 +150,11 @@ const ShopPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm overflow-hidden border dark:border-gray-800">
           <ShopTable
             data={currentData}
-            onEdit={(item) => {
+            onEdit={(item: IShopEntry) => {
               setEditingData(item);
               setIsModalOpen(true);
             }}
-            onDeleteSuccess={handleRefresh}
+            refreshData={async () => handleRefresh()}
           />
         </div>
       )}

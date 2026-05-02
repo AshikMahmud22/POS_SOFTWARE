@@ -6,6 +6,7 @@ import Home from "./pages/Dashboard/Home";
 import { useAuth } from "./lib/AuthProvider";
 import SignIn from "./AuthPage/SignIn";
 import ShopPage from "./pages/Shope/ShopPage";
+import ShopTrash from "./pages/Shope/ShopTrash";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 
@@ -34,6 +35,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                     <ShopPage />
+                  </ProtectedRoute>
+                } 
+              />
+
+              <Route 
+                path="/shop-trash" 
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                    <ShopTrash />
                   </ProtectedRoute>
                 } 
               />

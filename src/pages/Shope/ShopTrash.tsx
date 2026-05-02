@@ -1,0 +1,201 @@
+import React, { useState, useEffect } from "react";
+import { RotateCcw, Trash2, Loader2 } from "lucide-react";
+import API from "../../api/axiosInstance";
+import { toast } from "react-hot-toast";
+import { IShopEntry } from "./ShopTable";
+
+const ShopTrash: React.FC = () => {
+  const [trashedEntries, setTrashedEntries] = useState<IShopEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchTrash = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const res = await API.get("/shop/trashed-entries");
+      if (res.data.success) {
+        setTrashedEntries(res.data.data);
+      }
+    } catch {
+      toast.error("Failed to load trash");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrash();
+  }, []);
+
+  const handleRestore = async (id: string): Promise<void> => {
+    try {
+      const loadingToast = toast.loading("Restoring...");
+      const res = await API.post(`/shop/restore-entry/${id}`);
+      toast.dismiss(loadingToast);
+      if (res.data.success) {
+        toast.success("Entry restored successfully");
+        fetchTrash();
+      }
+    } catch {
+      toast.error("Restore failed");
+    }
+  };
+
+  const handlePermanentDelete = async (id: string): Promise<void> => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <span className="text-sm font-bold dark:text-white text-gray-800">
+            Permanently delete this? This cannot be undone!
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  const loadingToast = toast.loading("Deleting...");
+                  await API.delete(`/shop/permanent-delete/${id}`);
+                  toast.dismiss(loadingToast);
+                  toast.success("Deleted forever");
+                  fetchTrash();
+                } catch {
+                  toast.error("Delete failed");
+                }
+              }}
+              className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="bg-gray-200 text-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 5000 },
+    );
+  };
+
+  return (
+    <div className=" md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
+      <div className="mb-10">
+        <h1 className="text-4xl font-black text-red-600 uppercase tracking-tighter italic">
+          Trash Bin
+        </h1>
+        <p className="text-gray-500 font-bold text-xs mt-1 uppercase tracking-widest">
+          Restore or permanently delete items
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center p-20">
+          <Loader2 className="animate-spin text-red-600" size={40} />
+        </div>
+      ) : (
+        <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+          <table className="w-full text-left border-collapse min-w-[1100px]">
+            <thead>
+              <tr className="bg-red-50 dark:bg-red-900/10 text-red-600 uppercase text-[10px] font-black italic">
+                <th className="p-4 border-b dark:border-gray-800">Date</th>
+                <th className="p-4 border-b dark:border-gray-800">Details</th>
+                <th className="p-4 border-b dark:border-gray-800">Qty</th>
+                <th className="p-4 border-b dark:border-gray-800">Value</th>
+                <th className="p-4 border-b dark:border-gray-800">
+                  Total Cost
+                </th>
+                <th className="p-4 border-b dark:border-gray-800">Prev. Due</th>
+                <th className="p-4 border-b dark:border-gray-800">Deposit</th>
+                <th className="p-4 border-b dark:border-gray-800">
+                  Truck Fair
+                </th>
+                <th className="p-4 border-b dark:border-gray-800">
+                  Rest Amount
+                </th>
+                <th className="p-4 border-b dark:border-gray-800"> Sign</th>
+                <th className="p-4 border-b dark:border-gray-800 text-center">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y dark:divide-gray-800">
+              {trashedEntries.length > 0 ? (
+                trashedEntries.map((item) => (
+                  <tr
+                    key={item._id}
+                    className="hover:bg-red-50/30 dark:hover:bg-red-900/5 transition-colors"
+                  >
+                    <td className="p-4 text-sm font-bold dark:text-gray-300 whitespace-nowrap">
+                      {item.date}
+                    </td>
+                    <td className="p-4 text-sm font-medium dark:text-gray-400">
+                      {item.productDetails}
+                    </td>
+                    <td className="p-4 text-sm font-bold dark:text-gray-300">
+                      {item.quantity}
+                    </td>
+                    <td className="p-4 text-sm font-bold dark:text-gray-300">
+                      ৳{item.productValue}
+                    </td>
+                    <td className="p-4 text-sm font-bold dark:text-gray-300">
+                      ৳{item.totalCost}
+                    </td>
+                    <td className="p-4 text-sm font-bold text-red-500">
+                      ৳{item.previousDue}
+                    </td>
+                    <td className="p-4 text-sm font-bold text-green-600">
+                      ৳{item.deposit}
+                    </td>
+                    <td className="p-4 text-sm font-bold dark:text-gray-300">
+                      ৳{item.truckFair}
+                    </td>
+                    <td className="p-4 text-sm font-black text-blue-600 dark:text-blue-400">
+                      ৳{item.restTotalAmount}
+                    </td>
+                    <td className="p-4">
+                      <span className="text-[10px] font-black uppercase px-2 py-1 text-nowrap bg-gray-100 dark:bg-gray-800 rounded-md text-gray-500">
+                        {item.adminName || "ADMIN"}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => item._id && handleRestore(item._id)}
+                          className="p-2 hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 rounded-lg transition-all"
+                          title="Restore"
+                        >
+                          <RotateCcw size={18} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            item._id && handlePermanentDelete(item._id)
+                          }
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-all"
+                          title="Delete Permanently"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={11}
+                    className="p-10 text-center text-gray-500 font-bold uppercase text-xs"
+                  >
+                    Trash is empty
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ShopTrash;
