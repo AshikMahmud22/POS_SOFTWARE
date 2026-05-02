@@ -31,6 +31,11 @@ const navItems: NavItem[] = [
     icon: <ShoppingBag size={22} />,
     path: "/shop",
   },
+   {
+    name: "Dealer Shop Details",
+    icon: <Store size={22} />,
+    path: "/dealer-shop-details",
+  },
   {
     name: "Shop Trash",
     icon: <Trash2 size={22} />,
@@ -42,11 +47,7 @@ const navItems: NavItem[] = [
     path: "/admin-management",
     roles: [ROLES.SUPER_ADMIN],
   },
-  {
-    name: "Dealer Shop Details",
-    icon: <Store size={22} />,
-    path: "/dealer-shop-details",
-  },
+ 
   {
     name: "Profit / Commission",
     icon: <TrendingUp size={22} />,

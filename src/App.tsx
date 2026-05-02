@@ -9,6 +9,7 @@ import ShopPage from "./pages/Shope/ShopPage";
 import ShopTrash from "./pages/Shope/ShopTrash";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
+import DealerPage from "./pages/Dealer/DealerPage";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -35,6 +36,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                     <ShopPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/dealer-shop-details" 
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                    <DealerPage />
                   </ProtectedRoute>
                 } 
               />

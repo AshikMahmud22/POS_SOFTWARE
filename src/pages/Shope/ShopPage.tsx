@@ -100,7 +100,7 @@ const ShopPage: React.FC = () => {
             setEditingData(null);
             setIsModalOpen(true);
           }}
-          className="w-auto border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
+          className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
         >
           <PlusCircle size={20} /> New Entry
         </button>

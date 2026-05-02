@@ -32,7 +32,7 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <span className="text-sm font-bold text-gray-800">
+          <span className="text-sm font-bold dark:text-white text-gray-800">
             Are you sure you want to move this entry to trash?
           </span>
           <div className="flex gap-2">
