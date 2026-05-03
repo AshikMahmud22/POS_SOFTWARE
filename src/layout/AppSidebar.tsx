@@ -31,28 +31,29 @@ const navItems: NavItem[] = [
     icon: <ShoppingBag size={22} />,
     path: "/shop",
   },
-   {
-    name: "Dealer Shop Details",
+  {
+    name: "Dealer Details",
     icon: <Store size={22} />,
     path: "/dealer-shop-details",
+  },
+  {
+    name: "Profit / Commission",
+    icon: <TrendingUp size={22} />,
+    path: "/profit-commission",
   },
   {
     name: "Shop Trash",
     icon: <Trash2 size={22} />,
     path: "/shop-trash",
   },
+  
   {
     name: "Admin Management",
     icon: <Users size={22} />,
     path: "/admin-management",
     roles: [ROLES.SUPER_ADMIN],
   },
- 
-  {
-    name: "Profit / Commission",
-    icon: <TrendingUp size={22} />,
-    path: "/profit-commission",
-  },
+
   {
     name: "Delivery Cost",
     icon: <Truck size={22} />,
@@ -92,7 +93,7 @@ const AppSidebar: React.FC = () => {
         />
       )}
       <aside
-        className={`fixed mt-16 lg:mt-0 top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-100 
+        className={`fixed mt-16  top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-100 
         ${isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
         onMouseEnter={() => !isExpanded && setIsHovered(true)}

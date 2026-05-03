@@ -52,14 +52,14 @@ const DealerTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
       <Table className="text-left border-collapse min-w-[1400px] text-nowrap dark:text-white">
         <TableHeader className="bg-blue-50/50 dark:bg-blue-900/10 text-blue-900 dark:text-blue-400 uppercase text-[10px] font-black italic">
           <TableRow>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">1. Date / Month</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">2. DO Dhaka</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">3. DO Ghat</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">4. Bank Deposit</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">5. Adv Qty</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">6. Lifting</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">7. Excess</TableCell>
-            <TableCell isHeader className="p-5 border-b dark:border-gray-800">8. Party & Qty</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800"> Date / Month</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> DO Dhaka</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> DO Ghat</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> Bank Deposit</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> Adv Qty</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> Lifting</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> Excess</TableCell>
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center"> Party & Qty</TableCell>
             <TableCell isHeader className="p-5 border-b dark:border-gray-800 text-center">Actions</TableCell>
           </TableRow>
         </TableHeader>
@@ -73,19 +73,19 @@ const DealerTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
                 <TableCell className="p-5 text-sm font-bold whitespace-nowrap">
                   {item.date} <br /> <span className="text-[10px] text-gray-400 uppercase font-bold">{item.month}</span>
                 </TableCell>
-                <TableCell className="p-5 text-sm font-medium">{item.doDhaka || "-"}</TableCell>
-                <TableCell className="p-5 text-sm font-medium">{item.doGhat || "-"}</TableCell>
-                <TableCell className="p-5 text-sm font-black text-green-600">
+                <TableCell className="p-5 text-center text-sm font-medium">{item.doDhaka || "-"}</TableCell>
+                <TableCell className="p-5 text-center text-sm font-medium">{item.doGhat || "-"}</TableCell>
+                <TableCell className="p-5 text-center text-sm font-black text-green-600">
                   ৳{Number(item.bankDeposit).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-sm font-bold">{item.advDoQty}</TableCell>
-                <TableCell className="p-5 text-sm font-bold">{item.doLifting}</TableCell>
-                <TableCell className="p-5 text-sm font-bold text-red-500">{item.excessDoQty}</TableCell>
-                <TableCell className="p-5 text-sm font-bold">
+                <TableCell className="p-5 text-center text-sm font-bold">{item.advDoQty}</TableCell>
+                <TableCell className="p-5 text-center text-sm font-bold">{item.doLifting}</TableCell>
+                <TableCell className="p-5 text-center text-sm font-bold text-red-500">{item.excessDoQty}</TableCell>
+                <TableCell className="p-5 text-center text-sm font-bold">
                   <span className="text-blue-900 dark:text-blue-400 uppercase">{item.deliveredPartyName}</span>
                   <br /><span className="text-xs text-gray-500">{item.deliveredQty} BAGS</span>
                 </TableCell>
-                <TableCell className="p-5">
+                <TableCell className="p-5 text-center">
                   <div className="flex justify-center gap-2">
                     <button
                       onClick={() => onEdit(item)}
