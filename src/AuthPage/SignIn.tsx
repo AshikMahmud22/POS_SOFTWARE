@@ -121,7 +121,7 @@ const SignIn: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-950 hover:bg-blue-900 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-70 flex items-center justify-center"
+            className="w-full bg-blue-950 hover:bg-blue-900 dark:shadow-none text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-70 flex items-center justify-center"
           >
             {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : "Sign In"}
           </button>

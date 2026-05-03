@@ -1,20 +1,21 @@
+// pages/DeliveryCost/DeliveryCostPage.tsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Search, Filter, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { Pagination } from "../../components/Pagination/Pagination";
-import ProfitTable from "./ProfitTable";
-import ProfitFormModal from "./ProfitFormModal";
+import DeliveryCostTable from "./DeliveryCostTable";
+import DeliveryCostFormModal from "./DeliveryCostFormModal";
 import {
-  getProfitEntries,
-  deleteProfitEntry,
-  IProfitEntry,
-} from "../../services/profitService";
+  getDeliveryCostEntries,
+  deleteDeliveryCostEntry,
+  IDeliveryCostEntry,
+} from "../../services/deliveryService";
 
-const ProfitPage: React.FC = () => {
-  const [entries, setEntries] = useState<IProfitEntry[]>([]);
+const DeliveryCostPage: React.FC = () => {
+  const [entries, setEntries] = useState<IDeliveryCostEntry[]>([]);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [editData, setEditData] = useState<IProfitEntry | null>(null);
+  const [editData, setEditData] = useState<IDeliveryCostEntry | null>(null);
   const [search, setSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -41,7 +42,7 @@ const ProfitPage: React.FC = () => {
     ) => {
       try {
         if (isInitial) setInitialLoading(true);
-        const response = await getProfitEntries({
+        const response = await getDeliveryCostEntries({
           page,
           search: searchVal,
           month: filterVal.month,
@@ -101,7 +102,7 @@ const ProfitPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await deleteProfitEntry(id);
+      const res = await deleteDeliveryCostEntry(id);
       if (res.success) {
         toast.success(res.message);
         fetchEntries(currentPage, searchRef.current, filterRef.current);
@@ -111,7 +112,7 @@ const ProfitPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (item: IProfitEntry) => {
+  const handleEdit = (item: IDeliveryCostEntry) => {
     setEditData(item);
     setShowModal(true);
   };
@@ -126,10 +127,10 @@ const ProfitPage: React.FC = () => {
       <div className="flex flex-row items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-black text-blue-950 dark:text-white uppercase italic tracking-tighter">
-            Profit & Commission
+            Delivery Cost
           </h1>
           <p className="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
-            Profit & Loss Management
+            Delivery Cost Management
           </p>
         </div>
         <button
@@ -151,7 +152,7 @@ const ProfitPage: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Search by Retail/Site or Remarks..."
+            placeholder="Search by Retail/Site or Serial No..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-4 rounded-2xl border dark:border-gray-800 bg-transparent dark:text-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
@@ -196,7 +197,7 @@ const ProfitPage: React.FC = () => {
         </div>
       ) : (
         <>
-          <ProfitTable
+          <DeliveryCostTable
             entries={entries}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -211,7 +212,7 @@ const ProfitPage: React.FC = () => {
         </>
       )}
 
-      <ProfitFormModal
+      <DeliveryCostFormModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         editData={editData}
@@ -221,4 +222,4 @@ const ProfitPage: React.FC = () => {
   );
 };
 
-export default ProfitPage;
+export default DeliveryCostPage;

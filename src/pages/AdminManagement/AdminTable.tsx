@@ -1,5 +1,6 @@
 import React from "react";
 import { Trash2, Loader2, Phone, Mail } from "lucide-react";
+import toast from "react-hot-toast";
 import { AdminData } from "./AdminManagement";
 
 interface AdminTableProps {
@@ -15,6 +16,32 @@ const AdminTable: React.FC<AdminTableProps> = ({
   handleRoleChange,
   handleDeleteAdmin,
 }) => {
+  const confirmDelete = (id: string) => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <p className="font-medium text-gray-800">Delete this admin?</p>
+        <p className="text-sm text-gray-500">This action cannot be undone.</p>
+        <div className="flex gap-2 mt-1">
+          <button
+            onClick={() => {
+              handleDeleteAdmin(id);
+              toast.dismiss(t.id);
+            }}
+            className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border dark:border-gray-800 overflow-hidden">
       <div className="overflow-x-auto">
@@ -61,9 +88,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
                   <td className="p-4">
                     <select
                       value={admin.role}
-                      onChange={(e) =>
-                        handleRoleChange(admin._id, e.target.value)
-                      }
+                      onChange={(e) => handleRoleChange(admin._id, e.target.value)}
                       className="text-sm border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded p-1 outline-none bg-transparent"
                     >
                       <option value="admin">Admin</option>
@@ -73,7 +98,7 @@ const AdminTable: React.FC<AdminTableProps> = ({
                   <td className="p-4">
                     <div className="flex justify-center gap-3">
                       <button
-                        onClick={() => handleDeleteAdmin(admin._id)}
+                        onClick={() => confirmDelete(admin._id)}
                         className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                       >
                         <Trash2 size={18} />

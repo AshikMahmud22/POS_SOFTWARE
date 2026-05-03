@@ -39,7 +39,7 @@ const AdminModal: React.FC<AdminModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-blue-950/40 backdrop-blur-md z-10 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl">
+      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl lg:ml-64">
         <div className="bg-blue-950 p-8 text-white flex justify-between items-center">
           <h2 className="text-xl font-bold">New Admin</h2>
           <button

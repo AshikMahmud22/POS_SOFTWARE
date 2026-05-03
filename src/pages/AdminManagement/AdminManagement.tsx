@@ -38,7 +38,7 @@ const AdminManagement: React.FC = () => {
   const fetchAdmins = async () => {
     try {
       const res = await API.get<AdminData[]>("/admin/all");
-      const sortedAdmins = res.data.reverse(); 
+      const sortedAdmins = res.data.reverse();
       setAdmins(sortedAdmins);
     } catch {
       toast.error("Error loading data");
@@ -84,26 +84,55 @@ const AdminManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this admin?")) return;
-    toast.dismiss();
-    try {
-      await API.delete(`/admin/delete/${id}`);
-      toast.success("Admin removed");
-      fetchAdmins();
-    } catch {
-      toast.error("Delete failed");
-    }
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-medium text-gray-800 dark:text-white">
+            Delete this admin?
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-300">
+            This action cannot be undone.
+          </p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await API.delete(`/admin/delete/${id}`);
+                  toast.success("Admin removed");
+                  fetchAdmins();
+                } catch {
+                  toast.error("Delete failed");
+                }
+              }}
+              className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 dark:bg-gray-100 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors "
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity },
+    );
   };
 
   if (authLoading) return <div className="p-10 text-center">Loading...</div>;
 
   return (
     <div className="md:p-8 max-w-7xl mx-auto mt-5">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-black text-blue-950 dark:text-white">Admin Management</h1>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center items-start gap-3 mb-8">
+        <h1 className="text-3xl font-black text-blue-950 dark:text-white">
+          Admin Management
+        </h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-950 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shrink-0"
+          className="bg-blue-950 dark:bg-transparent dark:border border-gray-700 dark:shadow-none text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shrink-0 "
         >
           <UserPlus size={20} /> Add Admin
         </button>
@@ -114,16 +143,29 @@ const AdminManagement: React.FC = () => {
           <Table className="text-left min-w-[900px]">
             <TableHeader className="border-b dark:border-gray-700 dark:text-white bg-gray-50 dark:bg-gray-800/50">
               <TableRow>
-                <TableCell isHeader className="p-6 w-16 text-center">SL</TableCell>
-                <TableCell isHeader className="p-6">Admin Name</TableCell>
-                <TableCell isHeader className="p-6 text-center">Contact</TableCell>
-                <TableCell isHeader className="p-6 text-center">Role</TableCell>
-                <TableCell isHeader className="p-6 text-center">Actions</TableCell>
+                <TableCell isHeader className="p-6 w-16 text-center">
+                  SL
+                </TableCell>
+                <TableCell isHeader className="p-6">
+                  Admin Name
+                </TableCell>
+                <TableCell isHeader className="p-6 text-center">
+                  Contact
+                </TableCell>
+                <TableCell isHeader className="p-6 text-center">
+                  Role
+                </TableCell>
+                <TableCell isHeader className="p-6 text-center">
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y dark:text-white dark:divide-gray-700 divide-gray-300">
               {admins.map((admin, index) => (
-                <TableRow key={admin._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                <TableRow
+                  key={admin._id}
+                  className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                >
                   <TableCell className="p-6 text-center font-medium dark:text-gray-400 text-gray-600">
                     {index + 1}
                   </TableCell>
@@ -135,7 +177,8 @@ const AdminManagement: React.FC = () => {
                       <Mail size={14} className="text-blue-500" /> {admin.email}
                     </div>
                     <div className="flex items-center gap-2 mt-1 justify-center whitespace-nowrap">
-                      <Phone size={14} className="text-green-500" /> {admin.phone}
+                      <Phone size={14} className="text-green-500" />{" "}
+                      {admin.phone}
                     </div>
                   </TableCell>
                   <TableCell className="p-6 text-center">

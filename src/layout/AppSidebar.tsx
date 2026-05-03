@@ -41,6 +41,11 @@ const navItems: NavItem[] = [
     icon: <TrendingUp size={22} />,
     path: "/profit-commission",
   },
+    {
+    name: "Delivery Cost",
+    icon: <Truck size={22} />,
+    path: "/delivery-cost",
+  },
   {
     name: "Shop Trash",
     icon: <Trash2 size={22} />,
@@ -54,11 +59,7 @@ const navItems: NavItem[] = [
     roles: [ROLES.SUPER_ADMIN],
   },
 
-  {
-    name: "Delivery Cost",
-    icon: <Truck size={22} />,
-    path: "/delivery-cost",
-  },
+
 ];
 
 const AppSidebar: React.FC = () => {

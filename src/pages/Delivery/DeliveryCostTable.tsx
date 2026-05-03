@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { IProfitEntry } from "../../services/profitService";
+import { IDeliveryCostEntry } from "../../services/deliveryService";
 import {
   Table,
   TableBody,
@@ -11,12 +11,12 @@ import {
 } from "../../components/ui/table";
 
 interface Props {
-  entries: IProfitEntry[];
-  onEdit: (item: IProfitEntry) => void;
+  entries: IDeliveryCostEntry[];
+  onEdit: (item: IDeliveryCostEntry) => void;
   onDelete: (id: string) => void;
 }
 
-const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
+const DeliveryCostTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const handleDeleteClick = (id: string) => {
@@ -24,8 +24,8 @@ const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <p className="font-bold text-sm text-gray-800 dark:text-white">Delete this record?</p>
-          <p className="text-xs text-gray-500 dark:text-gray-200">This action cannot be undone.</p>
+          <p className="font-bold text-sm text-gray-800 dark:text-white ">Delete this record?</p>
+          <p className="text-xs text-gray-500 dark:text-gray-300">This action cannot be undone.</p>
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -49,90 +49,71 @@ const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
           </div>
         </div>
       ),
-      
+
     );
   };
 
   return (
     <div className="w-full overflow-x-auto rounded-[2.5rem] border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-      <Table className="text-left border-collapse min-w-[1400px] text-nowrap dark:text-white">
+      <Table className="text-left border-collapse min-w-[1200px] text-nowrap dark:text-white">
         <TableHeader className="bg-blue-50/50 dark:bg-blue-900/10 text-blue-900 dark:text-blue-400 uppercase text-[10px] font-black italic">
           <TableRow>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center"
-            >
+            <TableCell isHeader className="p-5 border-b dark:border-gray-800 ">
+              {" "}
               Date / Month
             </TableCell>
             <TableCell
               isHeader
-              className="p-5 border-b dark:border-gray-800 text-center "
+              className="p-5 border-b dark:border-gray-800 text-center"
             >
+              {" "}
+              Serial No.
+            </TableCell>
+            <TableCell
+              isHeader
+              className="p-5 border-b dark:border-gray-800 text-center"
+            >
+              {" "}
               Retail / Site
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
             >
-              Qty
+              {" "}
+              Bag
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
             >
-              DO Rate
+              {" "}
+              Car Cost
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
             >
-              Truck Fair
+              {" "}
+              DO Give
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
             >
-              Total
+              {" "}
+              DO Take
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
             >
-              Landing Rate
+              {" "}
+              Gift
             </TableCell>
             <TableCell
               isHeader
               className="p-5 border-b dark:border-gray-800 text-center"
-            >
-              COM
-            </TableCell>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center"
-            >
-              After COM Rate
-            </TableCell>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center"
-            >
-              Profit / Loss
-            </TableCell>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center"
-            >
-              Net Profit
-            </TableCell>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center"
-            >
-              Remarks
-            </TableCell>
-            <TableCell
-              isHeader
-              className="p-5 border-b dark:border-gray-800 text-center "
             >
               Actions
             </TableCell>
@@ -152,56 +133,28 @@ const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
                     {item.month}
                   </span>
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold uppercase text-blue-900 dark:text-blue-400">
+                <TableCell className="p-5 text-sm text-center font-bold">
+                  {item.serialNumber}
+                </TableCell>
+                <TableCell className="p-5 text-sm text-center font-bold uppercase text-blue-900 dark:text-blue-400">
                   {item.retailSite}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  {item.qty}
+                <TableCell className="p-5 text-sm text-center font-bold">
+                  {Number(item.bag).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  ৳{Number(item.doRate).toLocaleString()}
+                <TableCell className="p-5 text-sm text-center font-black text-green-600">
+                  ৳{Number(item.carCost).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  ৳{Number(item.truckFair).toLocaleString()}
+                <TableCell className="p-5 text-sm text-center font-bold">
+                  ৳{Number(item.doGive).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-black text-blue-950 dark:text-white">
-                  ৳{Number(item.total).toLocaleString()}
+                <TableCell className="p-5 text-sm text-center font-bold">
+                  ৳{Number(item.doTake).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  ৳{Number(item.landingRate).toLocaleString()}
+                <TableCell className="p-5 text-sm text-center font-bold text-purple-600">
+                  ৳{Number(item.gift).toLocaleString()}
                 </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  ৳{Number(item.com).toLocaleString()}
-                </TableCell>
-                <TableCell className="p-5 text-center text-sm font-bold">
-                  ৳{Number(item.afterComRate).toLocaleString()}
-                </TableCell>
-                <TableCell className="p-5 text-center text-sm font-black">
-                  <span
-                    className={
-                      Number(item.profitLoss) >= 0
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }
-                  >
-                    ৳{Number(item.profitLoss).toLocaleString()}
-                  </span>
-                </TableCell>
-                <TableCell className="p-5 text-center text-sm font-black">
-                  <span
-                    className={
-                      Number(item.netProfit) >= 0
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }
-                  >
-                    ৳{Number(item.netProfit).toLocaleString()}
-                  </span>
-                </TableCell>
-                <TableCell className="p-5 text-center text-sm text-gray-500">
-                  {item.remarks || "-"}
-                </TableCell>
-                <TableCell className="p-5 text-center">
+                <TableCell className="p-5">
                   <div className="flex justify-center gap-2">
                     <button
                       onClick={() => onEdit(item)}
@@ -222,10 +175,10 @@ const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
           ) : (
             <TableRow>
               <TableCell
-                colSpan={13}
+                colSpan={9}
                 className="p-10 text-center text-gray-400 font-bold uppercase text-xs tracking-widest"
               >
-                No profit records found
+                No delivery cost records found
               </TableCell>
             </TableRow>
           )}
@@ -235,4 +188,4 @@ const ProfitTable: React.FC<Props> = ({ entries, onEdit, onDelete }) => {
   );
 };
 
-export default ProfitTable;
+export default DeliveryCostTable;
