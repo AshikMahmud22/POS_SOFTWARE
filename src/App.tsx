@@ -12,6 +12,7 @@ import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 import DealerPage from "./pages/Dealer/DealerPage";
 import ProfitPage from "./pages/Profit/ProfitPage";
 import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
+import DownloadReport from "./pages/DownloadReport/DownloadReport";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -62,6 +63,14 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
                     <DeliveryCostPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/download-report" 
+                element={
+                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                    <DownloadReport />
                   </ProtectedRoute>
                 } 
               />

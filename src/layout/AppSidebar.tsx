@@ -7,6 +7,7 @@ import {
   Truck,
   Users,
   Trash2,
+  Proportions,
 } from "lucide-react";
 import { LuSquareDashedKanban } from "react-icons/lu";
 import { useSidebar } from "../context/SidebarContext";
@@ -45,19 +46,26 @@ const navItems: NavItem[] = [
     name: "Delivery Cost",
     icon: <Truck size={22} />,
     path: "/delivery-cost",
-  },
-  {
-    name: "Shop Trash",
-    icon: <Trash2 size={22} />,
-    path: "/shop-trash",
-  },
-  
+  }, 
+    {
+    name: "Download Report",
+    icon: <Proportions size={22} />,
+    path: "/download-report",
+  }, 
   {
     name: "Admin Management",
     icon: <Users size={22} />,
     path: "/admin-management",
     roles: [ROLES.SUPER_ADMIN],
   },
+
+  {
+    name: "Shop Trash",
+    icon: <Trash2 size={22} />,
+    path: "/shop-trash",
+  },
+  
+ 
 
 
 ];
