@@ -1,32 +1,54 @@
-import API from '../api/axiosInstance';
+import API from "../api/axiosInstance";
+import { IShopEntry } from "../types/shop";
 
-export interface ShopEntryData {
-  date: string;
-  month: string;
-  year: string;
-  productDetails: string;
-  quantity: number;
-  productValue: number;
-  totalCost: number;
-  previousDue: number;
-  deposit: number;
-  truckFair: number;
-  restTotalAmount: number;
-  sign?: string;
+interface ApiResponse {
+  success: boolean;
+  data: IShopEntry[];
 }
 
 interface SuccessResponse {
   success: boolean;
   message: string;
-  insertedId?: string;
 }
 
-export const addShopEntry = async (formData: ShopEntryData): Promise<SuccessResponse> => {
-  const response = await API.post<SuccessResponse>('/shop/add-entry', formData);
-  return response.data;
+export const getShopEntries = async (): Promise<ApiResponse> => {
+  const res = await API.get<ApiResponse>("/shop/get-entries");
+  return res.data;
 };
 
-export const getShopEntries = async (): Promise<ShopEntryData[]> => {
-  const response = await API.get<ShopEntryData[]>('/shop');
-  return response.data;
+export const addShopEntry = async (
+  formData: IShopEntry,
+): Promise<SuccessResponse> => {
+  const res = await API.post<SuccessResponse>("/shop/add-entry", formData);
+  return res.data;
+};
+
+export const updateShopEntry = async (
+  id: string,
+  formData: Partial<IShopEntry>,
+): Promise<SuccessResponse> => {
+  const res = await API.put<SuccessResponse>(
+    `/shop/update-entry/${id}`,
+    formData,
+  );
+  return res.data;
+};
+
+export const moveToTrash = async (id: string): Promise<SuccessResponse> => {
+  const res = await API.post<SuccessResponse>(`/shop/move-to-trash/${id}`);
+  return res.data;
+};
+export const getTrashedEntries = async (): Promise<ApiResponse> => {
+  const res = await API.get<ApiResponse>("/shop/trashed-entries");
+  return res.data;
+};
+
+export const restoreEntry = async (id: string): Promise<SuccessResponse> => {
+  const res = await API.post<SuccessResponse>(`/shop/restore-entry/${id}`);
+  return res.data;
+};
+
+export const permanentDelete = async (id: string): Promise<SuccessResponse> => {
+  const res = await API.delete<SuccessResponse>(`/shop/permanent-delete/${id}`);
+  return res.data;
 };

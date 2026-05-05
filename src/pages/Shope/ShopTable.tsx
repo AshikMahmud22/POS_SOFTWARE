@@ -1,25 +1,8 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
-import API from "../../api/axiosInstance";
 import { toast } from "react-hot-toast";
-
-export interface IShopEntry {
-  _id?: string;
-  date: string;
-  month: string;
-  year: string;
-  productDetails: string;
-  quantity: number;
-  productValue: number;
-  totalCost: number;
-  previousDue: number;
-  deposit: number;
-  truckFair: number;
-  restTotalAmount: number;
-  sign: string;
-  adminEmail: string;
-  adminName: string;
-}
+import { moveToTrash } from "../../services/shopService";
+import { IShopEntry } from "../../types/shop";
 
 interface ShopTableProps {
   data: IShopEntry[];
@@ -41,12 +24,10 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
                 toast.dismiss(t.id);
                 try {
                   const loadingToast = toast.loading("Processing...");
-                  const res = await API.post(`/shop/move-to-trash/${id}`);
+                  const res = await moveToTrash(id);
                   toast.dismiss(loadingToast);
-                  if (res.data.success) {
-                    toast.success("Moved to trash successfully", {
-                      duration: 3000,
-                    });
+                  if (res.success) {
+                    toast.success("Moved to trash successfully", { duration: 3000 });
                     await refreshData();
                   }
                 } catch {
@@ -66,39 +47,35 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
           </div>
         </div>
       ),
-      { duration: 5000 },
+      { duration: 5000 }
     );
   };
 
+  const sortedData = [...data].reverse();
+
   return (
     <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-      <table className="w-full text-left border-collapse min-w-[1100px]">
+      <table className="w-full border-collapse min-w-[1400px] text-center">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
-            <th className="p-4 border-b dark:border-gray-800"> Date</th>
-            <th className="p-4 border-b dark:border-gray-800"> Details</th>
-            <th className="p-4 border-b dark:border-gray-800"> Qty</th>
-            <th className="p-4 border-b dark:border-gray-800"> Value</th>
-            <th className="p-4 border-b dark:border-gray-800"> Total Cost</th>
-            <th className="p-4 border-b dark:border-gray-800 text-red-500">
-              Prev. Due
-            </th>
-            <th className="p-4 border-b dark:border-gray-800 text-green-600">
-              Deposit
-            </th>
-            <th className="p-4 border-b dark:border-gray-800"> Truck Fair</th>
-            <th className="p-4 border-b dark:border-gray-800 text-blue-600">
-              Rest Amount
-            </th>
-            <th className="p-4 border-b dark:border-gray-800">10. Sign</th>
-            <th className="p-4 border-b dark:border-gray-800 text-center">
-              Actions
-            </th>
+            <th className="p-4 border-b dark:border-gray-800">Date</th>
+            <th className="p-4 border-b dark:border-gray-800">Month</th>
+            <th className="p-4 border-b dark:border-gray-800">Year</th>
+            <th className="p-4 border-b dark:border-gray-800">Category</th>
+            <th className="p-4 border-b dark:border-gray-800">Subcategory</th>
+            <th className="p-4 border-b dark:border-gray-800">Qty</th>
+            <th className="p-4 border-b dark:border-gray-800">Product Value</th>
+            <th className="p-4 border-b dark:border-gray-800">Total Cost</th>
+            <th className="p-4 border-b dark:border-gray-800 text-red-500">Prev. Due</th>
+            <th className="p-4 border-b dark:border-gray-800 text-green-600">Deposit</th>
+            <th className="p-4 border-b dark:border-gray-800">Truck Fair</th>
+            <th className="p-4 border-b dark:border-gray-800 text-blue-600">Rest Amount</th>
+            <th className="p-4 border-b dark:border-gray-800 text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y dark:divide-gray-800">
-          {data.length > 0 ? (
-            data.map((item) => (
+          {sortedData.length > 0 ? (
+            sortedData.map((item) => (
               <tr
                 key={item._id}
                 className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
@@ -106,34 +83,42 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
                 <td className="p-4 text-sm font-bold dark:text-gray-300 whitespace-nowrap">
                   {item.date}
                 </td>
-                <td className="p-4 text-sm font-medium dark:text-gray-400">
-                  {item.productDetails}
+                <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
+                  {item.month}
+                </td>
+                <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
+                  {item.year}
+                </td>
+                <td className="p-4">
+                  <span className="text-[10px] font-black uppercase px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md whitespace-nowrap">
+                    {item.category || "—"}
+                  </span>
+                </td>
+                <td className="p-4">
+                  <span className="text-[10px] font-black uppercase px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md whitespace-nowrap">
+                    {item.subcategory || "—"}
+                  </span>
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
                   {item.quantity}
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  ৳{item.productValue}
+                  ৳{item.productValue.toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  ৳{item.totalCost}
+                  ৳{item.totalCost.toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-bold text-red-500">
-                  ৳{item.previousDue}
+                  ৳{item.previousDue.toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-bold text-green-600">
-                  ৳{item.deposit}
+                  ৳{item.deposit.toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  ৳{item.truckFair}
+                  ৳{item.truckFair.toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-black text-blue-600 dark:text-blue-400">
-                  ৳{item.restTotalAmount}
-                </td>
-                <td className="p-4">
-                  <span className="text-[10px] font-black uppercase px-2 py-1 text-nowrap bg-gray-100 dark:bg-gray-800 rounded-md text-gray-500">
-                    {item.adminName || "ADMIN"}
-                  </span>
+                  ৳{item.restTotalAmount.toLocaleString()}
                 </td>
                 <td className="p-4">
                   <div className="flex justify-center gap-2">
@@ -156,7 +141,7 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
           ) : (
             <tr>
               <td
-                colSpan={11}
+                colSpan={13}
                 className="p-10 text-center text-gray-500 font-bold uppercase text-xs"
               >
                 No entries found

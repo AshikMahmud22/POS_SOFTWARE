@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { RotateCcw, Trash2, Loader2 } from "lucide-react";
-import API from "../../api/axiosInstance";
 import { toast } from "react-hot-toast";
-import { IShopEntry } from "./ShopTable";
+import { IShopEntry } from "../../types/shop";
+import {
+  getTrashedEntries,
+  restoreEntry,
+  permanentDelete,
+} from "../../services/shopService";
 
 const ShopTrash: React.FC = () => {
   const [trashedEntries, setTrashedEntries] = useState<IShopEntry[]>([]);
@@ -11,9 +15,9 @@ const ShopTrash: React.FC = () => {
   const fetchTrash = async (): Promise<void> => {
     try {
       setLoading(true);
-      const res = await API.get("/shop/trashed-entries");
-      if (res.data.success) {
-        setTrashedEntries(res.data.data);
+      const res = await getTrashedEntries();
+      if (res.success) {
+        setTrashedEntries(res.data);
       }
     } catch {
       toast.error("Failed to load trash");
@@ -29,9 +33,9 @@ const ShopTrash: React.FC = () => {
   const handleRestore = async (id: string): Promise<void> => {
     try {
       const loadingToast = toast.loading("Restoring...");
-      const res = await API.post(`/shop/restore-entry/${id}`);
+      const res = await restoreEntry(id);
       toast.dismiss(loadingToast);
-      if (res.data.success) {
+      if (res.success) {
         toast.success("Entry restored successfully");
         fetchTrash();
       }
@@ -53,10 +57,12 @@ const ShopTrash: React.FC = () => {
                 toast.dismiss(t.id);
                 try {
                   const loadingToast = toast.loading("Deleting...");
-                  await API.delete(`/shop/permanent-delete/${id}`);
+                  const res = await permanentDelete(id);
                   toast.dismiss(loadingToast);
-                  toast.success("Deleted forever");
-                  fetchTrash();
+                  if (res.success) {
+                    toast.success("Deleted forever");
+                    fetchTrash();
+                  }
                 } catch {
                   toast.error("Delete failed");
                 }
@@ -79,7 +85,7 @@ const ShopTrash: React.FC = () => {
   };
 
   return (
-    <div className=" md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
+    <div className="md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
       <div className="mb-10">
         <h1 className="text-4xl font-black text-red-600 uppercase tracking-tighter italic">
           Trash Bin
@@ -95,13 +101,20 @@ const ShopTrash: React.FC = () => {
         </div>
       ) : (
         <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-          <table className="w-full text-left border-collapse min-w-[1100px]">
+          <table className="w-full  border-collapse min-w-[1400px] text-center text-nowrap">
             <thead>
               <tr className="bg-red-50 dark:bg-red-900/10 text-red-600 uppercase text-[10px] font-black italic">
                 <th className="p-4 border-b dark:border-gray-800">Date</th>
-                <th className="p-4 border-b dark:border-gray-800">Details</th>
+                <th className="p-4 border-b dark:border-gray-800">Month</th>
+                <th className="p-4 border-b dark:border-gray-800">Year</th>
+                <th className="p-4 border-b dark:border-gray-800">Category</th>
+                <th className="p-4 border-b dark:border-gray-800">
+                  Subcategory
+                </th>
                 <th className="p-4 border-b dark:border-gray-800">Qty</th>
-                <th className="p-4 border-b dark:border-gray-800">Value</th>
+                <th className="p-4 border-b dark:border-gray-800">
+                  Product Value
+                </th>
                 <th className="p-4 border-b dark:border-gray-800">
                   Total Cost
                 </th>
@@ -113,7 +126,7 @@ const ShopTrash: React.FC = () => {
                 <th className="p-4 border-b dark:border-gray-800">
                   Rest Amount
                 </th>
-                <th className="p-4 border-b dark:border-gray-800"> Sign</th>
+               
                 <th className="p-4 border-b dark:border-gray-800 text-center">
                   Actions
                 </th>
@@ -129,35 +142,44 @@ const ShopTrash: React.FC = () => {
                     <td className="p-4 text-sm font-bold dark:text-gray-300 whitespace-nowrap">
                       {item.date}
                     </td>
-                    <td className="p-4 text-sm font-medium dark:text-gray-400">
-                      {item.productDetails}
+                    <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
+                      {item.month}
+                    </td>
+                    <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
+                      {item.year}
+                    </td>
+                    <td className="p-4">
+                      <span className="text-[10px] font-black uppercase px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md whitespace-nowrap">
+                        {item.category || "—"}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-[10px] font-black uppercase px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md whitespace-nowrap">
+                        {item.subcategory || "—"}
+                      </span>
                     </td>
                     <td className="p-4 text-sm font-bold dark:text-gray-300">
                       {item.quantity}
                     </td>
                     <td className="p-4 text-sm font-bold dark:text-gray-300">
-                      ৳{item.productValue}
+                      ৳{item.productValue.toLocaleString()}
                     </td>
                     <td className="p-4 text-sm font-bold dark:text-gray-300">
-                      ৳{item.totalCost}
+                      ৳{item.totalCost.toLocaleString()}
                     </td>
                     <td className="p-4 text-sm font-bold text-red-500">
-                      ৳{item.previousDue}
+                      ৳{item.previousDue.toLocaleString()}
                     </td>
                     <td className="p-4 text-sm font-bold text-green-600">
-                      ৳{item.deposit}
+                      ৳{item.deposit.toLocaleString()}
                     </td>
                     <td className="p-4 text-sm font-bold dark:text-gray-300">
-                      ৳{item.truckFair}
+                      ৳{item.truckFair.toLocaleString()}
                     </td>
                     <td className="p-4 text-sm font-black text-blue-600 dark:text-blue-400">
-                      ৳{item.restTotalAmount}
+                      ৳{item.restTotalAmount.toLocaleString()}
                     </td>
-                    <td className="p-4">
-                      <span className="text-[10px] font-black uppercase px-2 py-1 text-nowrap bg-gray-100 dark:bg-gray-800 rounded-md text-gray-500">
-                        {item.adminName || "ADMIN"}
-                      </span>
-                    </td>
+                    
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <button
@@ -183,7 +205,7 @@ const ShopTrash: React.FC = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan={11}
+                    colSpan={15}
                     className="p-10 text-center text-gray-500 font-bold uppercase text-xs"
                   >
                     Trash is empty

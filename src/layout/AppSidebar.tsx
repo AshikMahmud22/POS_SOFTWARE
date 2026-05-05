@@ -9,7 +9,6 @@ import {
   Trash2,
   Proportions,
 } from "lucide-react";
-import { LuSquareDashedKanban } from "react-icons/lu";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../lib/AuthProvider";
 import { ROLES } from "../routes/ProtectedRoute";
@@ -37,21 +36,21 @@ const navItems: NavItem[] = [
     icon: <Store size={22} />,
     path: "/dealer-shop-details",
   },
-  {
-    name: "Profit / Commission",
-    icon: <TrendingUp size={22} />,
-    path: "/profit-commission",
-  },
-    {
-    name: "Delivery Cost",
-    icon: <Truck size={22} />,
-    path: "/delivery-cost",
-  }, 
-    {
-    name: "Download Report",
-    icon: <Proportions size={22} />,
-    path: "/download-report",
-  }, 
+  // {
+  //   name: "Profit / Commission",
+  //   icon: <TrendingUp size={22} />,
+  //   path: "/profit-commission",
+  // },
+  //   {
+  //   name: "Delivery Cost",
+  //   icon: <Truck size={22} />,
+  //   path: "/delivery-cost",
+  // },
+  //   {
+  //   name: "Download Report",
+  //   icon: <Proportions size={22} />,
+  //   path: "/download-report",
+  // },
   {
     name: "Admin Management",
     icon: <Users size={22} />,
@@ -64,10 +63,6 @@ const navItems: NavItem[] = [
     icon: <Trash2 size={22} />,
     path: "/shop-trash",
   },
-  
- 
-
-
 ];
 
 const AppSidebar: React.FC = () => {
@@ -110,14 +105,11 @@ const AppSidebar: React.FC = () => {
       >
         <Link
           to="/"
-          className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity justify-center "
         >
-          <div className="w-8 h-8 bg-blue-950 rounded-lg flex items-center rotate-180 justify-center text-white font-bold">
-            <LuSquareDashedKanban size={24} />
-          </div>
           {(isExpanded || isHovered || isMobileOpen) && (
-            <span className="font-bold text-xl dark:text-white">
-              AdminPanel
+            <span className="font-bold text-xl dark:text-white border dark:border-gray-800 py-3 px-6 rounded-2xl w-full text-center">
+              SHC
             </span>
           )}
         </Link>

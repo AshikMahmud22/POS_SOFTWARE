@@ -1,0 +1,21 @@
+export interface IShopEntry {
+  _id?: string;
+  date: string;
+  month: string;
+  year: string;
+  category: string;
+  subcategory: string;
+  quantity: number;
+  productValue: number;
+  totalCost: number;
+  previousDue: number;
+  deposit: number;
+  truckFair: number;
+  restTotalAmount: number;
+  sign: string;
+  adminEmail: string;
+  adminName: string;
+  status?: string;
+  createdAt?: string;
+  deletedAt?: string;
+}

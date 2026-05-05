@@ -10,9 +10,9 @@ import ShopTrash from "./pages/Shope/ShopTrash";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 import DealerPage from "./pages/Dealer/DealerPage";
-import ProfitPage from "./pages/Profit/ProfitPage";
-import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
-import DownloadReport from "./pages/DownloadReport/DownloadReport";
+// import ProfitPage from "./pages/Profit/ProfitPage";
+// import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
+// import DownloadReport from "./pages/DownloadReport/DownloadReport";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -33,64 +33,76 @@ export default function App() {
           <>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
-              
-              <Route 
-                path="/shop" 
+
+              <Route
+                path="/shop"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <ShopPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/dealer-shop-details" 
+              <Route
+                path="/dealer-shop-details"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <DealerPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/profit-commission" 
+              {/* <Route
+                path="/profit-commission"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <ProfitPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/delivery-cost" 
+              <Route
+                path="/delivery-cost"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <DeliveryCostPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/download-report" 
+              <Route
+                path="/download-report"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <DownloadReport />
                   </ProtectedRoute>
-                } 
-              />
+                }
+              /> */}
 
-              <Route 
-                path="/shop-trash" 
+              <Route
+                path="/shop-trash"
                 element={
-                  <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}>
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
                     <ShopTrash />
                   </ProtectedRoute>
-                } 
+                }
               />
 
-              <Route 
-                path="/admin-management" 
+              <Route
+                path="/admin-management"
                 element={
                   <ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}>
                     <AdminManagement />
                   </ProtectedRoute>
-                } 
+                }
               />
             </Route>
 

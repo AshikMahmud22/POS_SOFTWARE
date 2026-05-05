@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PlusCircle, Filter, Loader2 } from "lucide-react";
-import API from "../../api/axiosInstance";
 import ShopFormModal from "./ShopFormModal";
-import ShopTable, { IShopEntry } from "./ShopTable";
 import { Pagination } from "../../components/Pagination/Pagination";
-
-interface ApiResponse {
-  success: boolean;
-  data: IShopEntry[];
-}
+import { getShopEntries } from "../../services/shopService";
+import { IShopEntry } from "../../types/shop";
+import ShopTable from "./ShopTable";
 
 const ShopPage: React.FC = () => {
   const [entries, setEntries] = useState<IShopEntry[]>([]);
@@ -16,19 +12,29 @@ const ShopPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingData, setEditingData] = useState<IShopEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [filter, setFilter] = useState<{ month: string; year: string }>({ month: "", year: "" });
+  const [filter, setFilter] = useState<{
+    month: string;
+    year: string;
+    category: string;
+    subcategory: string;
+  }>({
+    month: "",
+    year: "",
+    category: "",
+    subcategory: "",
+  });
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
+  const isFirstLoad = useRef<boolean>(true);
 
   const fetchEntries = async (): Promise<void> => {
     try {
       setLoading(true);
-      const res = await API.get<ApiResponse>("/shop/get-entries");
-      if (res.data.success) {
-        const data = res.data.data;
+      const res = await getShopEntries();
+      if (res.success) {
+        const data = res.data;
         setEntries(data);
-        if (data.length > 0 && filter.year === "") {
-          const years = [...new Set(data.map((e: IShopEntry) => e.year))].sort().reverse();
-          setFilter(prev => ({ ...prev, year: years[0] }));
+        if (isFirstLoad.current && data.length > 0) {
+          isFirstLoad.current = false;
         }
       }
     } catch (err) {
@@ -42,34 +48,74 @@ const ShopPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-  const availableYears: string[] = Array.from(new Set(entries.map((e: IShopEntry) => e.year))).sort().reverse();
+  const availableYears: string[] = Array.from(
+    new Set(entries.map((e: IShopEntry) => e.year))
+  )
+    .sort()
+    .reverse();
 
   const availableMonths: string[] = Array.from(
     new Set(
       entries
-        .filter((e: IShopEntry) => e.year === filter.year)
+        .filter((e: IShopEntry) => filter.year !== "" && e.year === filter.year)
         .map((e: IShopEntry) => e.month)
+    )
+  );
+
+  const availableCategories: string[] = Array.from(
+    new Set(
+      entries
+        .filter(
+          (e: IShopEntry) =>
+            filter.year !== "" &&
+            e.year === filter.year &&
+            filter.month !== "" &&
+            e.month === filter.month
+        )
+        .map((e: IShopEntry) => e.category)
+        .filter(Boolean)
+    )
+  );
+
+  const availableSubcategories: string[] = Array.from(
+    new Set(
+      entries
+        .filter(
+          (e: IShopEntry) =>
+            filter.year !== "" &&
+            e.year === filter.year &&
+            filter.month !== "" &&
+            e.month === filter.month &&
+            filter.category !== "" &&
+            e.category === filter.category
+        )
+        .map((e: IShopEntry) => e.subcategory)
+        .filter(Boolean)
     )
   );
 
   const filteredEntries: IShopEntry[] = entries.filter(
     (ent: IShopEntry) =>
       (filter.year === "" || ent.year === filter.year) &&
-      (filter.month === "" || ent.month === filter.month)
+      (filter.month === "" || ent.month === filter.month) &&
+      (filter.category === "" || ent.category === filter.category) &&
+      (filter.subcategory === "" || ent.subcategory === filter.subcategory)
   );
 
   const itemsPerPage = 10;
-  const totalPages: number = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
-  const currentData: IShopEntry[] = filteredEntries.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
+  const totalPages: number =
+    Math.ceil(filteredEntries.length / itemsPerPage) || 1;
+  const sortedEntries = [...filteredEntries].reverse();
+const currentData: IShopEntry[] = sortedEntries.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
   const initialEmpty: IShopEntry = {
     date: new Date().toISOString().split("T")[0],
     month: new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date()),
     year: new Date().getFullYear().toString(),
-    productDetails: "",
+    category: "",
+    subcategory: "",
     quantity: 0,
     productValue: 0,
     totalCost: 0,
@@ -84,8 +130,13 @@ const ShopPage: React.FC = () => {
 
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
 
+  const hasActiveFilters = filter.year || filter.month || filter.category || filter.subcategory;
+
+
+
+  
   return (
-    <div className=" md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
+    <div className="md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-black dark:text-white text-blue-950 uppercase tracking-tighter italic">
@@ -106,29 +157,31 @@ const ShopPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 flex flex-wrap items-center gap-6 bg-white dark:bg-gray-900 shadow-sm">
-        <div className="flex items-center gap-3 dark:text-blue-400 text-blue-950 font-black text-[10px] uppercase tracking-widest">
+      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 flex flex-wrap items-center  gap-6 bg-white dark:bg-gray-900 shadow-sm">
+        <div className="flex items-center gap-3 dark:text-blue-400 text-blue-950 font-black text-[10px] uppercase tracking-widest ">
           <Filter size={14} /> Filters
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 justify-center">
           <select
             value={filter.year}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              setFilter({ year: e.target.value, month: "" });
+              setFilter({ year: e.target.value, month: "", category: "", subcategory: "" });
               setCurrentPage(1);
             }}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer"
           >
-            <option value="">Select Year</option>
+            <option value="">All Years</option>
             {availableYears.map((y: string) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
 
           <select
             value={filter.month}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              setFilter({ ...filter, month: e.target.value });
+              setFilter((prev) => ({ ...prev, month: e.target.value, category: "", subcategory: "" }));
               setCurrentPage(1);
             }}
             disabled={!filter.year}
@@ -136,9 +189,57 @@ const ShopPage: React.FC = () => {
           >
             <option value="">All Months</option>
             {availableMonths.map((m: string) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
+
+          <select
+            value={filter.category}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" }));
+              setCurrentPage(1);
+            }}
+            disabled={!filter.month}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
+          >
+            <option value="">All Categories</option>
+            {availableCategories.map((c: string) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filter.subcategory}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+              setFilter((prev) => ({ ...prev, subcategory: e.target.value }));
+              setCurrentPage(1);
+            }}
+            disabled={!filter.category}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
+          >
+            <option value="">All Subcategories</option>
+            {availableSubcategories.map((s: string) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                setFilter({ year: "", month: "", category: "", subcategory: "" });
+                setCurrentPage(1);
+              }}
+              className="text-[10px] font-semibold uppercase text-red-500 hover:text-red-700 transition-colors border px-4 py-2 rounded-xl dark:border-gray-800"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 

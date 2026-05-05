@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import UserDropdown from "../components/header/UserDropdown";
-import { LuSquareDashedKanban } from "react-icons/lu";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -84,10 +83,8 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link to="/" className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-950 rounded-lg flex items-center justify-center text-white font-bold rotate-180">
-              <LuSquareDashedKanban size={24} />
-            </div>
-            <h1 className="font-bold text-xl dark:text-white">JS-Live</h1>
+            
+            <h1 className="font-bold text-xl  dark:text-white">SHC</h1>
           </Link>
 
           <button
