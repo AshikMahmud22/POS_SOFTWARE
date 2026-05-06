@@ -10,6 +10,7 @@ import ShopTrash from "./pages/Shope/ShopTrash";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 import CompanyPage from "./pages/Company/CompanyPage";
+import PartyPage from "./pages/Party/PartyPage";
 // import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
@@ -52,6 +53,16 @@ export default function App() {
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
                     <CompanyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/party-list"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <PartyPage />
                   </ProtectedRoute>
                 }
               />

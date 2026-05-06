@@ -3,11 +3,9 @@ import { Link, useLocation } from "react-router";
 import {
   ShoppingBag,
   Store,
-  TrendingUp,
-  Truck,
   Users,
   Trash2,
-  Proportions,
+  
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../lib/AuthProvider";
@@ -36,11 +34,11 @@ const navItems: NavItem[] = [
     icon: <Store size={22} />,
     path: "/companies-details",
   },
-  // {
-  //   name: "Profit / Commission",
-  //   icon: <TrendingUp size={22} />,
-  //   path: "/profit-commission",
-  // },
+  {
+    name: "Party List",
+    icon: <Users size={22} />,
+    path: "/party-list",
+  },
   //   {
   //   name: "Delivery Cost",
   //   icon: <Truck size={22} />,
