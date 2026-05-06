@@ -32,9 +32,9 @@ const navItems: NavItem[] = [
     path: "/shop",
   },
   {
-    name: "Dealer Details",
+    name: "Companies ",
     icon: <Store size={22} />,
-    path: "/dealer-shop-details",
+    path: "/companies-details",
   },
   // {
   //   name: "Profit / Commission",

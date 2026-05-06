@@ -9,7 +9,8 @@ import ShopPage from "./pages/Shope/ShopPage";
 import ShopTrash from "./pages/Shope/ShopTrash";
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
-import DealerPage from "./pages/Dealer/DealerPage";
+import CompanyPage from "./pages/Company/CompanyPage";
+// import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
 // import DownloadReport from "./pages/DownloadReport/DownloadReport";
@@ -45,12 +46,12 @@ export default function App() {
                 }
               />
               <Route
-                path="/dealer-shop-details"
+                path="/companies-details"
                 element={
                   <ProtectedRoute
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
-                    <DealerPage />
+                    <CompanyPage />
                   </ProtectedRoute>
                 }
               />
