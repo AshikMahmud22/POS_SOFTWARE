@@ -11,6 +11,7 @@ import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 import CompanyPage from "./pages/Company/CompanyPage";
 import PartyPage from "./pages/Party/PartyPage";
+import CollectionPage from "./pages/Collection/CollectionPage";
 // import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
@@ -63,6 +64,16 @@ export default function App() {
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
                     <PartyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/collection"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <CollectionPage />
                   </ProtectedRoute>
                 }
               />

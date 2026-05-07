@@ -17,29 +17,32 @@ const AdminTable: React.FC<AdminTableProps> = ({
   handleDeleteAdmin,
 }) => {
   const confirmDelete = (id: string) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <p className="font-medium text-gray-800">Delete this admin?</p>
-        <p className="text-sm text-gray-500">This action cannot be undone.</p>
-        <div className="flex gap-2 mt-1">
-          <button
-            onClick={() => {
-              handleDeleteAdmin(id);
-              toast.dismiss(t.id);
-            }}
-            className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-medium text-gray-800">Delete this admin?</p>
+          <p className="text-sm text-gray-500">This action cannot be undone.</p>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={() => {
+                handleDeleteAdmin(id);
+                toast.dismiss(t.id);
+              }}
+              className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    ), { duration: Infinity });
+      ),
+      { duration: Infinity },
+    );
   };
 
   return (
@@ -78,17 +81,21 @@ const AdminTable: React.FC<AdminTableProps> = ({
                     </p>
                     <div className="flex flex-col gap-1 mt-1">
                       <p className="text-sm text-gray-500 flex items-center gap-1 whitespace-nowrap">
-                        <Mail size={12} className="text-blue-500" /> {admin.email}
+                        <Mail size={12} className="text-blue-500" />{" "}
+                        {admin.email}
                       </p>
                       <p className="text-xs text-blue-600 flex items-center gap-1 font-semibold whitespace-nowrap">
-                        <Phone size={12} className="text-green-500" /> {admin.phone}
+                        <Phone size={12} className="text-green-500" />{" "}
+                        {admin.phone}
                       </p>
                     </div>
                   </td>
                   <td className="p-4">
                     <select
                       value={admin.role}
-                      onChange={(e) => handleRoleChange(admin._id, e.target.value)}
+                      onChange={(e) =>
+                        handleRoleChange(admin._id, e.target.value)
+                      }
                       className="text-sm border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded p-1 outline-none bg-transparent"
                     >
                       <option value="admin">Admin</option>

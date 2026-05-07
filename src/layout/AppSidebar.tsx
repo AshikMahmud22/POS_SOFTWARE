@@ -5,7 +5,8 @@ import {
   Store,
   Users,
   Trash2,
-  
+  Boxes,
+  SquareDashedText,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../lib/AuthProvider";
@@ -39,11 +40,11 @@ const navItems: NavItem[] = [
     icon: <Users size={22} />,
     path: "/party-list",
   },
-  //   {
-  //   name: "Delivery Cost",
-  //   icon: <Truck size={22} />,
-  //   path: "/delivery-cost",
-  // },
+  {
+    name: "Collection",
+    icon: <Boxes size={22} />,
+    path: "/collection",
+  },
   //   {
   //   name: "Download Report",
   //   icon: <Proportions size={22} />,
@@ -95,7 +96,7 @@ const AppSidebar: React.FC = () => {
         />
       )}
       <aside
-        className={`fixed mt-16  top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-100 
+        className={`fixed mt-20  top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-100 
         ${isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
         onMouseEnter={() => !isExpanded && setIsHovered(true)}
@@ -103,11 +104,12 @@ const AppSidebar: React.FC = () => {
       >
         <Link
           to="/"
-          className="p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity justify-center "
+          className="p-6 flex items-center gap-3 cursor-pointer  transition-opacity  "
         >
           {(isExpanded || isHovered || isMobileOpen) && (
-            <span className="font-bold text-xl dark:text-white border dark:border-gray-800 py-3 px-6 rounded-2xl w-full text-center">
-              SHC
+            <span className="font-semibold text-2xl dark:text-white text-start flex items-center gap-2 text-blue-500 hover:bg-blue-100 hover:text-blue-950  dark:hover:bg-blue-950 w-full py-2 pl-2 rounded-xl">
+              <SquareDashedText />
+              Dashboard
             </span>
           )}
         </Link>
