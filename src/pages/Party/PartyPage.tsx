@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { PlusCircle, Loader2, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -6,6 +5,9 @@ import { IParty } from "../../types/party";
 import { getParties } from "../../services/partyService";
 import PartyTable from "./PartyTable";
 import PartyModal from "./PartyModal";
+import { Pagination } from "../../components/Pagination/Pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 const PartyPage: React.FC = () => {
   const [parties, setParties] = useState<IParty[]>([]);
@@ -13,6 +15,7 @@ const PartyPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingData, setEditingData] = useState<IParty | null>(null);
   const [search, setSearch] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const fetchParties = async (): Promise<void> => {
     try {
@@ -33,6 +36,23 @@ const PartyPage: React.FC = () => {
   const filteredParties = parties.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredParties.length / ITEMS_PER_PAGE);
+
+  const paginatedParties = filteredParties.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearch("");
+    setCurrentPage(1);
+  };
 
   const handleOpenAdd = () => {
     setEditingData(null);
@@ -76,13 +96,13 @@ const PartyPage: React.FC = () => {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
           placeholder="Search by party name..."
           className="w-full pl-10 pr-4 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
         {search && (
           <button
-            onClick={() => setSearch("")}
+            onClick={handleClearSearch}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-black text-xs uppercase"
           >
             Clear
@@ -95,11 +115,18 @@ const PartyPage: React.FC = () => {
           <Loader2 className="animate-spin text-blue-600" size={40} />
         </div>
       ) : (
-        <PartyTable
-          data={filteredParties}
-          onEdit={handleOpenEdit}
-          refreshData={fetchParties}
-        />
+        <>
+          <PartyTable
+            data={paginatedParties}
+            onEdit={handleOpenEdit}
+            refreshData={fetchParties}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
 
       <PartyModal

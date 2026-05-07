@@ -5,6 +5,9 @@ import { ICollection } from "../../types/collection";
 import { getCollections } from "../../services/collectionService";
 import CollectionTable from "./CollectionTable";
 import CollectionFormModal from "./CollectionFormModal";
+import { Pagination } from "../../components/Pagination/Pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 const EMPTY: ICollection = {
   date: new Date().toISOString().split("T")[0],
@@ -29,6 +32,7 @@ const CollectionPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingData, setEditingData] = useState<ICollection | null>(null);
   const [search, setSearch] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const fetchEntries = async (): Promise<void> => {
     try {
@@ -51,6 +55,13 @@ const CollectionPage: React.FC = () => {
     if (!q) return true;
     return e.partyName.toLowerCase().includes(q) || e.date.includes(q);
   });
+
+  const totalPages = Math.ceil(filteredEntries.length / ITEMS_PER_PAGE);
+
+  const paginatedEntries = filteredEntries.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleRefresh = async (): Promise<void> => {
     await fetchEntries();
@@ -95,7 +106,10 @@ const CollectionPage: React.FC = () => {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           placeholder="Search by party name or date..."
           className="w-full pl-10 pr-10 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
@@ -114,14 +128,21 @@ const CollectionPage: React.FC = () => {
           <Loader2 className="animate-spin text-blue-600" size={40} />
         </div>
       ) : (
-        <CollectionTable
-          data={filteredEntries}
-          onEdit={(item) => {
-            setEditingData(item);
-            setIsModalOpen(true);
-          }}
-          refreshData={handleRefresh}
-        />
+        <>
+          <CollectionTable
+            data={paginatedEntries}
+            onEdit={(item) => {
+              setEditingData(item);
+              setIsModalOpen(true);
+            }}
+            refreshData={handleRefresh}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
 
       <CollectionFormModal
