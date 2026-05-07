@@ -27,12 +27,8 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/signin" replace />;
   }
 
-  if (role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN) {
-    return <>{children}</>;
-  }
-
   if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
