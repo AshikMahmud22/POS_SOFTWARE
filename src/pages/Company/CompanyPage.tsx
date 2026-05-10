@@ -18,12 +18,7 @@ const CompanyPage: React.FC = () => {
     year: string;
     category: string;
     subcategory: string;
-  }>({
-    month: "",
-    year: "",
-    category: "",
-    subcategory: "",
-  });
+  }>({ month: "", year: "", category: "", subcategory: "" });
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const isFirstLoad = useRef<boolean>(true);
 
@@ -48,87 +43,53 @@ const CompanyPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-  const availableYears = useMemo(() => {
-    return Array.from(new Set(entries.map((e) => e.year))).sort(
-      (a, b) => Number(b) - Number(a),
-    );
-  }, [entries]);
+  const availableYears = useMemo(() =>
+    Array.from(new Set(entries.map((e) => e.year))).sort((a, b) => Number(b) - Number(a)),
+    [entries]
+  );
 
   const availableMonths = useMemo(() => {
     if (!filter.year) return [];
-    return Array.from(
-      new Set(
-        entries.filter((e) => e.year === filter.year).map((e) => e.month),
-      ),
-    );
+    return Array.from(new Set(entries.filter((e) => e.year === filter.year).map((e) => e.month)));
   }, [entries, filter.year]);
 
   const availableCategories = useMemo(() => {
     if (!filter.year || !filter.month) return [];
-    return Array.from(
-      new Set(
-        entries
-          .filter((e) => e.year === filter.year && e.month === filter.month)
-          .map((e) => e.category)
-          .filter(Boolean),
-      ),
-    );
+    return Array.from(new Set(
+      entries.filter((e) => e.year === filter.year && e.month === filter.month)
+        .map((e) => e.category).filter(Boolean)
+    ));
   }, [entries, filter.year, filter.month]);
 
   const availableSubcategories = useMemo(() => {
     if (!filter.year || !filter.month || !filter.category) return [];
-    return Array.from(
-      new Set(
-        entries
-          .filter(
-            (e) =>
-              e.year === filter.year &&
-              e.month === filter.month &&
-              e.category === filter.category,
-          )
-          .map((e) => e.subcategory)
-          .filter(Boolean),
-      ),
-    );
+    return Array.from(new Set(
+      entries.filter((e) =>
+        e.year === filter.year && e.month === filter.month && e.category === filter.category
+      ).map((e) => e.subcategory).filter(Boolean)
+    ));
   }, [entries, filter.year, filter.month, filter.category]);
 
   const filteredEntries = useMemo(() => {
     return entries.filter((ent) => {
-      const matchesSearch = ent.companyName
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const matchesSearch = ent.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesYear = filter.year === "" || ent.year === filter.year;
       const matchesMonth = filter.month === "" || ent.month === filter.month;
-      const matchesCategory =
-        filter.category === "" || ent.category === filter.category;
-      const matchesSubcategory =
-        filter.subcategory === "" || ent.subcategory === filter.subcategory;
-      return (
-        matchesSearch &&
-        matchesYear &&
-        matchesMonth &&
-        matchesCategory &&
-        matchesSubcategory
-      );
+      const matchesCategory = filter.category === "" || ent.category === filter.category;
+      const matchesSubcategory = filter.subcategory === "" || ent.subcategory === filter.subcategory;
+      return matchesSearch && matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
     });
   }, [entries, searchTerm, filter]);
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
-  const currentData = useMemo(() => {
-    return filteredEntries.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage,
-    );
-  }, [filteredEntries, currentPage]);
+  const currentData = useMemo(() =>
+    filteredEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredEntries, currentPage]
+  );
 
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
-  const hasActiveFilters =
-    searchTerm ||
-    filter.year ||
-    filter.month ||
-    filter.category ||
-    filter.subcategory;
+  const hasActiveFilters = searchTerm || filter.year || filter.month || filter.category || filter.subcategory;
 
   return (
     <div className="md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
@@ -142,131 +103,68 @@ const CompanyPage: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => {
-            setEditingData(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => { setEditingData(null); setIsModalOpen(true); }}
           className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
         >
           <PlusCircle size={20} /> New Entry
         </button>
       </div>
 
-      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 space-y-4 bg-white dark:bg-gray-900 shadow-sm flex md:justify-between justify-center items-center flex-wrap ">
-        <div className="flex flex-col md:flex-row md:gap-4 items-center">
-          <div className="relative -bottom-2 w-96 ">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 "
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search by company name..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl font-bold outline-none text-sm border dark:border-transparent focus:border-blue-500 transition-all"
-            />
-          </div>
-          
+      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 space-y-4 bg-white dark:bg-gray-900 shadow-sm flex md:justify-between justify-center items-center flex-wrap">
+        <div className="relative w-80">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search by company name..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl font-bold outline-none text-sm border dark:border-transparent focus:border-blue-500 transition-all"
+          />
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <select
             value={filter.year}
-            onChange={(e) => {
-              setFilter({
-                year: e.target.value,
-                month: "",
-                category: "",
-                subcategory: "",
-              });
-              setCurrentPage(1);
-            }}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent min-w-[140px]"
+            onChange={(e) => { setFilter({ year: e.target.value, month: "", category: "", subcategory: "" }); setCurrentPage(1); }}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent min-w-[130px]"
           >
             <option value="">All Years</option>
-            {availableYears.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
+            {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
 
           <select
             value={filter.month}
-            onChange={(e) => {
-              setFilter((prev) => ({
-                ...prev,
-                month: e.target.value,
-                category: "",
-                subcategory: "",
-              }));
-              setCurrentPage(1);
-            }}
+            onChange={(e) => { setFilter((prev) => ({ ...prev, month: e.target.value, category: "", subcategory: "" })); setCurrentPage(1); }}
             disabled={!filter.year}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[140px]"
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
             <option value="">All Months</option>
-            {availableMonths.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
+            {availableMonths.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
 
           <select
             value={filter.category}
-            onChange={(e) => {
-              setFilter((prev) => ({
-                ...prev,
-                category: e.target.value,
-                subcategory: "",
-              }));
-              setCurrentPage(1);
-            }}
+            onChange={(e) => { setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" })); setCurrentPage(1); }}
             disabled={!filter.month}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[140px]"
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
             <option value="">All Categories</option>
-            {availableCategories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
+            {availableCategories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
 
           <select
             value={filter.subcategory}
-            onChange={(e) => {
-              setFilter((prev) => ({ ...prev, subcategory: e.target.value }));
-              setCurrentPage(1);
-            }}
+            onChange={(e) => { setFilter((prev) => ({ ...prev, subcategory: e.target.value })); setCurrentPage(1); }}
             disabled={!filter.category}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[140px]"
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
             <option value="">All Subcategories</option>
-            {availableSubcategories.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+            {availableSubcategories.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
 
           {hasActiveFilters && (
             <button
-              onClick={() => {
-                setFilter({
-                  year: "",
-                  month: "",
-                  category: "",
-                  subcategory: "",
-                });
-                setSearchTerm("");
-                setCurrentPage(1);
-              }}
+              onClick={() => { setFilter({ year: "", month: "", category: "", subcategory: "" }); setSearchTerm(""); setCurrentPage(1); }}
               className="text-[10px] font-black uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-red-200 dark:border-red-900/30 px-4 py-2.5 rounded-xl"
             >
               Reset
@@ -283,10 +181,7 @@ const CompanyPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm overflow-hidden border dark:border-gray-800">
           <CompanyTable
             companies={currentData}
-            onEdit={(item) => {
-              setEditingData(item);
-              setIsModalOpen(true);
-            }}
+            onEdit={(item) => { setEditingData(item); setIsModalOpen(true); }}
             refreshData={async () => handleRefresh()}
           />
         </div>
@@ -294,11 +189,7 @@ const CompanyPage: React.FC = () => {
 
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
 

@@ -23,8 +23,6 @@ export interface ICategory {
   subcategories: string[];
 }
 
-export type DoLiftingSource = "dhaka" | "ghat";
-
 export interface ICompanyEntry {
   _id?: string;
   companyName: string;
@@ -37,8 +35,8 @@ export interface ICompanyEntry {
   ghatDo: IGhatDo;
   bankDeposit: IBankDeposit;
   advDoQty?: number | string;
+  advDoAmount?: number | string;
   doLifting: number | string;
-  doLiftingSource: DoLiftingSource;
   excessDoQty?: number | string;
   previousDo?: number | string;
   adminName?: string;
@@ -83,12 +81,6 @@ export const MONTHS = [
 
 export type Month = typeof MONTHS[number];
 
-export const PRODUCTS = [
-  "Cement", "Steel", "Sand", "Brick", "Gravel", "Lime", "Other",
-] as const;
-
-export type Product = typeof PRODUCTS[number];
-
 export const EMPTY_COMPANY_FORM: ICompanyEntry = {
   companyName: "",
   year: "",
@@ -105,8 +97,8 @@ export const EMPTY_COMPANY_FORM: ICompanyEntry = {
     commissionReason: "",
   },
   advDoQty: "",
+  advDoAmount: "",
   doLifting: "",
-  doLiftingSource: "dhaka",
   excessDoQty: "",
   previousDo: "",
 };
