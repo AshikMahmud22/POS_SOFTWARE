@@ -1,16 +1,16 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { moveToTrash } from "../../services/shopService";
-import { IShopEntry } from "../../types/shop";
+import { moveToTrash } from "../../services/retailerService";
+import { IRetailerEntry } from "../../types/retailer";
 
-interface ShopTableProps {
-  data: IShopEntry[];
-  onEdit: (item: IShopEntry) => void;
+interface RetailerTableProps {
+  data: IRetailerEntry[];
+  onEdit: (item: IRetailerEntry) => void;
   refreshData: () => Promise<void>;
 }
 
-const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
+const RetailerTable: React.FC<RetailerTableProps> = ({ data, onEdit, refreshData }) => {
   const handleMoveToTrash = async (id: string) => {
     toast(
       (t) => (
@@ -55,16 +55,21 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
 
   return (
     <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-      <table className="w-full border-collapse min-w-[1400px] text-center">
+      <table className="w-full border-collapse min-w-[1700px] text-center text-nowrap">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
             <th className="p-4 border-b dark:border-gray-800">Date</th>
-            <th className="p-4 border-b dark:border-gray-800">Month</th>
-            <th className="p-4 border-b dark:border-gray-800">Year</th>
+            <th className="p-4 border-b dark:border-gray-800">Retailer Name</th>
+            <th className="p-4 border-b dark:border-gray-800">Proprietor</th>
+            <th className="p-4 border-b dark:border-gray-800">Address</th>
+            <th className="p-4 border-b dark:border-gray-800">Mobile</th>
+            <th className="p-4 border-b dark:border-gray-800">Company</th>
             <th className="p-4 border-b dark:border-gray-800">Category</th>
             <th className="p-4 border-b dark:border-gray-800">Subcategory</th>
+            <th className="p-4 border-b dark:border-gray-800">Rate Type</th>
+            <th className="p-4 border-b dark:border-gray-800 text-orange-500">Do Factory</th>
+            <th className="p-4 border-b dark:border-gray-800 text-purple-500">Do Ghat</th>
             <th className="p-4 border-b dark:border-gray-800">Qty</th>
-            <th className="p-4 border-b dark:border-gray-800">Product Value</th>
             <th className="p-4 border-b dark:border-gray-800">Total Cost</th>
             <th className="p-4 border-b dark:border-gray-800 text-red-500">Prev. Due</th>
             <th className="p-4 border-b dark:border-gray-800 text-green-600">Deposit</th>
@@ -83,11 +88,20 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
                 <td className="p-4 text-sm font-bold dark:text-gray-300 whitespace-nowrap">
                   {item.date}
                 </td>
-                <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
-                  {item.month}
+                <td className="p-4 text-sm font-bold dark:text-gray-200 whitespace-nowrap">
+                  {item.retailerName || "—"}
+                </td>
+                <td className="p-4 text-sm dark:text-gray-300 whitespace-nowrap">
+                  {item.proprietorName || "—"}
                 </td>
                 <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
-                  {item.year}
+                  {item.address || "—"}
+                </td>
+                <td className="p-4 text-sm dark:text-gray-400 whitespace-nowrap">
+                  {item.mobile || "—"}
+                </td>
+                <td className="p-4 text-sm font-bold dark:text-gray-200 whitespace-nowrap">
+                  {item.companyName || "—"}
                 </td>
                 <td className="p-4">
                   <span className="text-[10px] font-black uppercase px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md whitespace-nowrap">
@@ -99,11 +113,25 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
                     {item.subcategory || "—"}
                   </span>
                 </td>
-                <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  {item.quantity}
+                <td className="p-4">
+                  <span
+                    className={`text-[10px] font-black uppercase px-2 py-1 rounded-md whitespace-nowrap ${
+                      item.rateType === "factory"
+                        ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400"
+                        : "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+                    }`}
+                  >
+                    {item.rateType === "factory" ? "Do Factory" : "Do Ghat"}
+                  </span>
+                </td>
+                <td className="p-4 text-sm font-bold text-orange-500">
+                  ৳{(item.doFactory || 0).toLocaleString()}
+                </td>
+                <td className="p-4 text-sm font-bold text-purple-500">
+                  ৳{(item.doGhat || 0).toLocaleString()}
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  ৳{item.productValue.toLocaleString()}
+                  {item.quantity}
                 </td>
                 <td className="p-4 text-sm font-bold dark:text-gray-300">
                   ৳{item.totalCost.toLocaleString()}
@@ -141,10 +169,10 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
           ) : (
             <tr>
               <td
-                colSpan={13}
+                colSpan={18}
                 className="p-10 text-center text-gray-500 font-bold uppercase text-xs"
               >
-                No entries found
+                No retailer entries found
               </td>
             </tr>
           )}
@@ -154,4 +182,4 @@ const ShopTable: React.FC<ShopTableProps> = ({ data, onEdit, refreshData }) => {
   );
 };
 
-export default ShopTable;
+export default RetailerTable;

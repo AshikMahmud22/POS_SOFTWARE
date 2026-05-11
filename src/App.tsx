@@ -5,13 +5,14 @@ import NotFound from "./pages/OtherPage/NotFound";
 import Home from "./pages/Dashboard/Home";
 import { useAuth } from "./lib/AuthProvider";
 import SignIn from "./AuthPage/SignIn";
-import ShopPage from "./pages/Shope/ShopPage";
-import ShopTrash from "./pages/Shope/ShopTrash";
+
 import AdminManagement from "./pages/AdminManagement/AdminManagement";
 import { ProtectedRoute, ROLES } from "./routes/ProtectedRoute";
 import CompanyPage from "./pages/Company/CompanyPage";
 import PartyPage from "./pages/Party/PartyPage";
 import CollectionPage from "./pages/Collection/CollectionPage";
+import RetailerPage from "./pages/Retailer/RetailerPage";
+import RetailerTrash from "./pages/Retailer/RetailerTrash";
 // import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
@@ -38,12 +39,12 @@ export default function App() {
               <Route index path="/" element={<Home />} />
 
               <Route
-                path="/shop"
+                path="/retailer"
                 element={
                   <ProtectedRoute
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
-                    <ShopPage />
+                    <RetailerPage />
                   </ProtectedRoute>
                 }
               />
@@ -109,12 +110,12 @@ export default function App() {
               /> */}
 
               <Route
-                path="/shop-trash"
+                path="/retailer-trash"
                 element={
                   <ProtectedRoute
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
-                    <ShopTrash />
+                    <RetailerTrash />
                   </ProtectedRoute>
                 }
               />

@@ -26,9 +26,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    name: "Shop",
+    name: "Retailer",
     icon: <ShoppingBag size={22} />,
-    path: "/shop",
+    path: "/retailer",
   },
   {
     name: "Companies ",
@@ -58,9 +58,9 @@ const navItems: NavItem[] = [
   },
 
   {
-    name: "Shop Trash",
+    name: "Retailer Trash",
     icon: <Trash2 size={22} />,
-    path: "/shop-trash",
+    path: "/retailer-trash",
   },
 ];
 

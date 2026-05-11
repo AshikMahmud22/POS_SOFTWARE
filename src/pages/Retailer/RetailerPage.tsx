@@ -1,35 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PlusCircle, Filter, Loader2 } from "lucide-react";
-import ShopFormModal from "./ShopFormModal";
+import RetailerFormModal from "./RetailerFormModal/RetailerFormModal";
 import { Pagination } from "../../components/Pagination/Pagination";
-import { getShopEntries } from "../../services/shopService";
-import { IShopEntry } from "../../types/shop";
-import ShopTable from "./ShopTable";
+import { getRetailerEntries } from "../../services/retailerService";
+import { IRetailerEntry } from "../../types/retailer";
+import RetailerTable from "./RetailerTable";
 
-const ShopPage: React.FC = () => {
-  const [entries, setEntries] = useState<IShopEntry[]>([]);
+const RetailerPage: React.FC = () => {
+  const [entries, setEntries] = useState<IRetailerEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingData, setEditingData] = useState<IShopEntry | null>(null);
+  const [editingData, setEditingData] = useState<IRetailerEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filter, setFilter] = useState<{
     month: string;
     year: string;
+    companyName: string;
     category: string;
     subcategory: string;
-  }>({
-    month: "",
-    year: "",
-    category: "",
-    subcategory: "",
-  });
+  }>({ month: "", year: "", companyName: "", category: "", subcategory: "" });
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const isFirstLoad = useRef<boolean>(true);
 
   const fetchEntries = async (): Promise<void> => {
     try {
       setLoading(true);
-      const res = await getShopEntries();
+      const res = await getRetailerEntries();
       if (res.success) {
         const data = res.data;
         setEntries(data);
@@ -48,17 +44,26 @@ const ShopPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-  const availableYears: string[] = Array.from(
-    new Set(entries.map((e: IShopEntry) => e.year))
-  )
-    .sort()
-    .reverse();
+  const availableYears: string[] = Array.from(new Set(entries.map((e) => e.year))).sort().reverse();
 
   const availableMonths: string[] = Array.from(
     new Set(
       entries
-        .filter((e: IShopEntry) => filter.year !== "" && e.year === filter.year)
-        .map((e: IShopEntry) => e.month)
+        .filter((e) => filter.year !== "" && e.year === filter.year)
+        .map((e) => e.month)
+    )
+  );
+
+  const availableCompanyNames: string[] = Array.from(
+    new Set(
+      entries
+        .filter(
+          (e) =>
+            filter.year !== "" && e.year === filter.year &&
+            filter.month !== "" && e.month === filter.month
+        )
+        .map((e) => e.companyName)
+        .filter(Boolean)
     )
   );
 
@@ -66,13 +71,12 @@ const ShopPage: React.FC = () => {
     new Set(
       entries
         .filter(
-          (e: IShopEntry) =>
-            filter.year !== "" &&
-            e.year === filter.year &&
-            filter.month !== "" &&
-            e.month === filter.month
+          (e) =>
+            filter.year !== "" && e.year === filter.year &&
+            filter.month !== "" && e.month === filter.month &&
+            filter.companyName !== "" && e.companyName === filter.companyName
         )
-        .map((e: IShopEntry) => e.category)
+        .map((e) => e.category)
         .filter(Boolean)
     )
   );
@@ -81,43 +85,50 @@ const ShopPage: React.FC = () => {
     new Set(
       entries
         .filter(
-          (e: IShopEntry) =>
-            filter.year !== "" &&
-            e.year === filter.year &&
-            filter.month !== "" &&
-            e.month === filter.month &&
-            filter.category !== "" &&
-            e.category === filter.category
+          (e) =>
+            filter.year !== "" && e.year === filter.year &&
+            filter.month !== "" && e.month === filter.month &&
+            filter.companyName !== "" && e.companyName === filter.companyName &&
+            filter.category !== "" && e.category === filter.category
         )
-        .map((e: IShopEntry) => e.subcategory)
+        .map((e) => e.subcategory)
         .filter(Boolean)
     )
   );
 
-  const filteredEntries: IShopEntry[] = entries.filter(
-    (ent: IShopEntry) =>
+  const filteredEntries: IRetailerEntry[] = entries.filter(
+    (ent) =>
       (filter.year === "" || ent.year === filter.year) &&
       (filter.month === "" || ent.month === filter.month) &&
+      (filter.companyName === "" || ent.companyName === filter.companyName) &&
       (filter.category === "" || ent.category === filter.category) &&
       (filter.subcategory === "" || ent.subcategory === filter.subcategory)
   );
 
   const itemsPerPage = 10;
-  const totalPages: number =
-    Math.ceil(filteredEntries.length / itemsPerPage) || 1;
+  const totalPages: number = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
   const sortedEntries = [...filteredEntries].reverse();
-const currentData: IShopEntry[] = sortedEntries.slice(
-  (currentPage - 1) * itemsPerPage,
-  currentPage * itemsPerPage
-);
-  const initialEmpty: IShopEntry = {
+  const currentData: IRetailerEntry[] = sortedEntries.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const initialEmpty: IRetailerEntry = {
     date: new Date().toISOString().split("T")[0],
     month: new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date()),
     year: new Date().getFullYear().toString(),
+    retailerName: "",
+    proprietorName: "",
+    address: "",
+    mobile: "",
+    companyId: "",
+    companyName: "",
     category: "",
     subcategory: "",
+    rateType: "factory",
+    doFactory: 0,
+    doGhat: 0,
     quantity: 0,
-    productValue: 0,
     totalCost: 0,
     previousDue: 0,
     deposit: 0,
@@ -129,21 +140,17 @@ const currentData: IShopEntry[] = sortedEntries.slice(
   };
 
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
+  const hasActiveFilters = filter.year || filter.month || filter.companyName || filter.category || filter.subcategory;
 
-  const hasActiveFilters = filter.year || filter.month || filter.category || filter.subcategory;
-
-
-
-  
   return (
     <div className="md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-black dark:text-white text-blue-950 uppercase tracking-tighter italic">
-            Shop Ledger
+            Retailer Ledger
           </h1>
           <p className="text-gray-500 font-bold text-xs mt-1 uppercase tracking-widest">
-            Manage sales and dues
+            Manage retailer sales and dues
           </p>
         </div>
         <button
@@ -157,64 +164,65 @@ const currentData: IShopEntry[] = sortedEntries.slice(
         </button>
       </div>
 
-      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 flex flex-wrap items-center  gap-6 bg-white dark:bg-gray-900 shadow-sm">
-        <div className="flex items-center gap-3 dark:text-blue-400 text-blue-950 font-black text-[10px] uppercase tracking-widest ">
+      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 flex flex-wrap items-center gap-6 bg-white dark:bg-gray-900 shadow-sm">
+        <div className="flex items-center gap-3 dark:text-blue-400 text-blue-950 font-black text-[10px] uppercase tracking-widest">
           <Filter size={14} /> Filters
         </div>
         <div className="flex flex-wrap items-center gap-4 justify-center">
           <select
             value={filter.year}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              setFilter({ year: e.target.value, month: "", category: "", subcategory: "" });
+            onChange={(e) => {
+              setFilter({ year: e.target.value, month: "", companyName: "", category: "", subcategory: "" });
               setCurrentPage(1);
             }}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer"
           >
             <option value="">All Years</option>
-            {availableYears.map((y: string) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
+            {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
 
           <select
             value={filter.month}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              setFilter((prev) => ({ ...prev, month: e.target.value, category: "", subcategory: "" }));
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, month: e.target.value, companyName: "", category: "", subcategory: "" }));
               setCurrentPage(1);
             }}
             disabled={!filter.year}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
           >
             <option value="">All Months</option>
-            {availableMonths.map((m: string) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
+            {availableMonths.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
 
           <select
-            value={filter.category}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" }));
+            value={filter.companyName}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, companyName: e.target.value, category: "", subcategory: "" }));
               setCurrentPage(1);
             }}
             disabled={!filter.month}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
           >
+            <option value="">All Companies</option>
+            {availableCompanyNames.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          <select
+            value={filter.category}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" }));
+              setCurrentPage(1);
+            }}
+            disabled={!filter.companyName}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
+          >
             <option value="">All Categories</option>
-            {availableCategories.map((c: string) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
+            {availableCategories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
 
           <select
             value={filter.subcategory}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            onChange={(e) => {
               setFilter((prev) => ({ ...prev, subcategory: e.target.value }));
               setCurrentPage(1);
             }}
@@ -222,17 +230,13 @@ const currentData: IShopEntry[] = sortedEntries.slice(
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2 rounded-xl font-bold outline-none text-sm cursor-pointer disabled:opacity-50"
           >
             <option value="">All Subcategories</option>
-            {availableSubcategories.map((s: string) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+            {availableSubcategories.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
 
           {hasActiveFilters && (
             <button
               onClick={() => {
-                setFilter({ year: "", month: "", category: "", subcategory: "" });
+                setFilter({ year: "", month: "", companyName: "", category: "", subcategory: "" });
                 setCurrentPage(1);
               }}
               className="text-[10px] font-semibold uppercase text-red-500 hover:text-red-700 transition-colors border px-4 py-2 rounded-xl dark:border-gray-800"
@@ -249,9 +253,9 @@ const currentData: IShopEntry[] = sortedEntries.slice(
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm overflow-hidden border dark:border-gray-800">
-          <ShopTable
+          <RetailerTable
             data={currentData}
-            onEdit={(item: IShopEntry) => {
+            onEdit={(item: IRetailerEntry) => {
               setEditingData(item);
               setIsModalOpen(true);
             }}
@@ -262,15 +266,11 @@ const currentData: IShopEntry[] = sortedEntries.slice(
 
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
 
-      <ShopFormModal
+      <RetailerFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmitSuccess={handleRefresh}
@@ -281,4 +281,4 @@ const currentData: IShopEntry[] = sortedEntries.slice(
   );
 };
 
-export default ShopPage;
+export default RetailerPage;
