@@ -26,6 +26,7 @@ export interface IRetailerEntry {
   status?: string;
   createdAt?: string;
   deletedAt?: string;
+  truckFairType: "self" | "company";
 }
 
 export const monthOrder = [

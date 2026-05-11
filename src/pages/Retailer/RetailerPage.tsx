@@ -137,6 +137,7 @@ const RetailerPage: React.FC = () => {
     sign: "",
     adminEmail: "",
     adminName: "",
+    truckFairType: "self",
   };
 
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);

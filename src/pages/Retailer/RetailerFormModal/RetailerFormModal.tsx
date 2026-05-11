@@ -226,7 +226,7 @@ const RetailerFormModal: React.FC<FormModalProps> = ({
       <div
         className="relative w-full rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col border border-white/5"
         style={{
-          maxHeight: "95svh",
+          maxHeight: "85svh",
           maxWidth: "min(95vw, 860px)",
           marginLeft: "auto",
           marginRight: "auto",

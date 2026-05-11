@@ -21,6 +21,8 @@ const EMPTY: ICollection = {
   truckFairType: "party",
   truckFair: 0,
   previousDue: 0,
+  cashCollection: 0,
+  totalDeposit: 0,
   partyBalance: 0,
   adminName: "",
   adminEmail: "",
@@ -75,7 +77,7 @@ const CollectionPage: React.FC = () => {
             Collection
           </h1>
           <p className="text-gray-500 font-bold text-xs mt-1 uppercase tracking-widest">
-            Manage party ledger entries
+            Manage retailer collection entries
           </p>
         </div>
         <button
@@ -83,26 +85,23 @@ const CollectionPage: React.FC = () => {
             setEditingData(null);
             setIsModalOpen(true);
           }}
-          className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white  p-4 rounded-full sm:flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm hidden sm:block"
+          className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white p-4 rounded-full sm:flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm hidden sm:block"
         >
-          <PlusCircle size={20} /> new entry
+          <PlusCircle size={20} /> New Entry
         </button>
         <button
           onClick={() => {
             setEditingData(null);
             setIsModalOpen(true);
           }}
-          className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white  p-4 rounded-full flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm sm:hidden"
+          className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white p-4 rounded-full flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm sm:hidden"
         >
           <PlusCircle size={20} />
         </button>
       </div>
 
       <div className="relative mb-6 max-w-sm">
-        <Search
-          size={15}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-        />
+        <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
@@ -110,7 +109,7 @@ const CollectionPage: React.FC = () => {
             setSearch(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="Search by party name or date..."
+          placeholder="Search by retailer name or date..."
           className="w-full pl-10 pr-10 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
         {search && (

@@ -2,7 +2,6 @@ import React from "react";
 import { IRetailerEntry } from "../../../types/retailer";
 import { ICompanyEntry } from "../../../types/companies";
 
-
 interface Props {
   formData: IRetailerEntry;
   filteredEntries: ICompanyEntry[];
@@ -10,15 +9,27 @@ interface Props {
   year: string;
   onDayChange: (val: string) => void;
   onYearChange: (val: string) => void;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   handleCompanySelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleSubcategorySelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   uniqueCompanyNames: string[];
 }
 
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const inputCls =
@@ -27,11 +38,11 @@ const inputCls =
 const readonlyCls =
   "w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700/40 bg-slate-100 dark:bg-slate-700/30 text-slate-600 dark:text-slate-400 text-xs font-semibold cursor-not-allowed";
 
-const Field: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({
-  label,
-  children,
-  className = "",
-}) => (
+const Field: React.FC<{
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}> = ({ label, children, className = "" }) => (
   <div className={`space-y-0.5 ${className}`}>
     <label className="block text-[8px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500 ml-0.5">
       {label}
@@ -91,7 +102,7 @@ const RetailerFormFields: React.FC<Props> = ({
             name="address"
             value={formData.address || ""}
             onChange={handleChange}
-            placeholder="Bogra Sadar"
+            placeholder="Dhaka Sadar"
             className={inputCls}
           />
         </Field>
@@ -115,7 +126,7 @@ const RetailerFormFields: React.FC<Props> = ({
       </div>
 
       <Divider label="Company & Product" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 mb-2">
         <Field label="Company Name">
           <select
             value={formData.companyName || ""}
@@ -147,22 +158,26 @@ const RetailerFormFields: React.FC<Props> = ({
             ))}
           </select>
         </Field>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         <Field label="Category">
           <div className={readonlyCls}>
             {formData.category || (
-              <span className="text-slate-300 dark:text-slate-600">Auto filled</span>
+              <span className="text-slate-300 dark:text-slate-600">
+                Auto filled
+              </span>
             )}
           </div>
         </Field>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         <Field label="Do Factory Rate (৳)">
           <div className={readonlyCls}>
             {formData.doFactory ? (
               `৳${Number(formData.doFactory).toLocaleString()}`
             ) : (
-              <span className="text-slate-300 dark:text-slate-600">Auto filled</span>
+              <span className="text-slate-300 dark:text-slate-600">
+                Auto filled
+              </span>
             )}
           </div>
         </Field>
@@ -171,7 +186,9 @@ const RetailerFormFields: React.FC<Props> = ({
             {formData.doGhat ? (
               `৳${Number(formData.doGhat).toLocaleString()}`
             ) : (
-              <span className="text-slate-300 dark:text-slate-600">Auto filled</span>
+              <span className="text-slate-300 dark:text-slate-600">
+                Auto filled
+              </span>
             )}
           </div>
         </Field>
@@ -186,10 +203,6 @@ const RetailerFormFields: React.FC<Props> = ({
             <option value="ghat">Do Ghat</option>
           </select>
         </Field>
-      </div>
-
-      <Divider label="Order & Financials" />
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-3">
         <Field label="Quantity (Bags)">
           <input
             type="number"
@@ -200,6 +213,21 @@ const RetailerFormFields: React.FC<Props> = ({
             required
             className={inputCls}
           />
+        </Field>
+      </div>
+
+      <Divider label="Order & Financials" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 mb-3">
+        <Field label="Truck Fair By">
+          <select
+            name="truckFairType"
+            value={formData.truckFairType || "self"}
+            onChange={handleChange}
+            className={`${inputCls} appearance-none`}
+          >
+            <option value="self">By Self</option>
+            <option value="company">By Company</option>
+          </select>
         </Field>
         <Field label="Truck Fair (৳)">
           <input
@@ -244,7 +272,9 @@ const RetailerFormFields: React.FC<Props> = ({
             className={`${inputCls} appearance-none`}
           >
             {MONTHS.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
         </Field>
@@ -254,7 +284,8 @@ const RetailerFormFields: React.FC<Props> = ({
             value={day}
             onChange={(e) => {
               const v = e.target.value;
-              if (v === "" || (Number(v) >= 1 && Number(v) <= 31)) onDayChange(v);
+              if (v === "" || (Number(v) >= 1 && Number(v) <= 31))
+                onDayChange(v);
             }}
             min={1}
             max={31}

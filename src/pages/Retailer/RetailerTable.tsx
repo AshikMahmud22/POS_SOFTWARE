@@ -55,7 +55,7 @@ const RetailerTable: React.FC<RetailerTableProps> = ({ data, onEdit, refreshData
 
   return (
     <div className="w-full overflow-x-auto rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-      <table className="w-full border-collapse min-w-[1700px] text-center text-nowrap">
+      <table className="w-full border-collapse min-w-[1800px] text-center text-nowrap">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
             <th className="p-4 border-b dark:border-gray-800">Date</th>
@@ -142,8 +142,21 @@ const RetailerTable: React.FC<RetailerTableProps> = ({ data, onEdit, refreshData
                 <td className="p-4 text-sm font-bold text-green-600">
                   ৳{item.deposit.toLocaleString()}
                 </td>
-                <td className="p-4 text-sm font-bold dark:text-gray-300">
-                  ৳{item.truckFair.toLocaleString()}
+                <td className="p-4 whitespace-nowrap">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-sm font-bold dark:text-gray-300">
+                      ৳{item.truckFair.toLocaleString()}
+                    </span>
+                    <span
+                      className={`text-[9px] font-black uppercase ${
+                        item.truckFairType === "company"
+                          ? "text-blue-500"
+                          : "text-emerald-500"
+                      }`}
+                    >
+                      {item.truckFairType === "company" ? "By Company" : "By Self"}
+                    </span>
+                  </div>
                 </td>
                 <td className="p-4 text-sm font-black text-blue-600 dark:text-blue-400">
                   ৳{item.restTotalAmount.toLocaleString()}

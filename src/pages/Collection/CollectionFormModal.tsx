@@ -4,15 +4,9 @@ import { toast } from "react-hot-toast";
 import { AxiosError } from "axios";
 import { useAuth } from "../../lib/AuthProvider";
 import { ICollection } from "../../types/collection";
-import { IParty } from "../../types/party";
+import { IRetailerEntry } from "../../types/retailer";
 import { addCollection, updateCollection } from "../../services/collectionService";
-import { getParties } from "../../services/partyService";
-
-const MONTH_FROM_NUMBER: Record<string, string> = {
-  "01": "January", "02": "February", "03": "March", "04": "April",
-  "05": "May", "06": "June", "07": "July", "08": "August",
-  "09": "September", "10": "October", "11": "November", "12": "December",
-};
+import { getRetailerEntries } from "../../services/retailerService";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -23,6 +17,8 @@ interface FormModalProps {
 }
 
 const inputCls = "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
+
+const readonlyCls = "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/40 bg-slate-100 dark:bg-slate-700/30 text-slate-600 dark:text-slate-400 text-sm font-semibold cursor-not-allowed";
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="space-y-1">
@@ -42,86 +38,80 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
 }) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<ICollection>(initialData);
-  const [parties, setParties] = useState<IParty[]>([]);
+  const [retailers, setRetailers] = useState<IRetailerEntry[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
 
   useEffect(() => {
-    if (!isOpen) return;
-    getParties().then((res) => {
-      if (res.success) setParties(res.data);
-    });
+    if (!isOpen) {
+      document.body.style.overflow = "unset";
+      document.body.style.paddingRight = "0px";
+      return;
+    }
+
+    const sw = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    document.body.style.paddingRight = `${sw}px`;
+
     setFormData({
       ...initialData,
       adminName: user?.firstName || "",
       adminEmail: user?.email || "",
     });
-    if (initialData.date) {
-      setSelectedDate(initialData.date);
-    } else {
-      setSelectedDate(new Date().toISOString().split("T")[0]);
-    }
+
+    getRetailerEntries().then((res) => {
+      if (res.success) setRetailers(res.data);
+    });
+
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.paddingRight = "0px";
+    };
   }, [isOpen, initialData, user]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      const parts = selectedDate.split("-");
-      const monthName = MONTH_FROM_NUMBER[parts[1]];
-      setFormData((prev) => ({
-        ...prev,
-        date: selectedDate,
-        month: monthName,
-        year: parts[0],
-      }));
-    }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    const total = Number(formData.bag) * Number(formData.rate);
-    const balance =
-      formData.truckFairType === "party"
-        ? Number(formData.previousDue) + total - Number(formData.truckFair)
-        : Number(formData.previousDue) + total;
-    setFormData((prev) => ({
-      ...prev,
-      totalCost: total,
-      partyBalance: balance,
-    }));
-  }, [formData.bag, formData.rate, formData.truckFair, formData.truckFairType, formData.previousDue]);
 
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const numeric = ["bag", "rate", "truckFair", "previousDue"];
+  const handleRetailerSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = retailers.find((r) => r._id === e.target.value);
+    if (!selected) return;
+
+    const rate =
+      selected.rateType === "factory"
+        ? Number(selected.doFactory)
+        : Number(selected.doGhat);
+
     setFormData((prev) => ({
       ...prev,
-      [name]: numeric.includes(name) ? Number(value) : value,
+      partyId: selected._id || "",
+      partyName: selected.retailerName,
+      date: selected.date,
+      month: selected.month,
+      year: selected.year,
+      bag: selected.quantity,
+      rate: rate,
+      totalCost: selected.totalCost,
+      truckFair: selected.truckFair,
+      truckFairType: selected.truckFairType === "company" ? "party" : "self",
+      previousDue: selected.previousDue,
+      cashCollection: selected.deposit,
+      totalDeposit: selected.deposit,
+      partyBalance: selected.restTotalAmount,
     }));
-  };
-
-  const handlePartySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = parties.find((p) => p._id === e.target.value);
-    if (selected) {
-      setFormData((prev) => ({
-        ...prev,
-        partyId: selected._id || "",
-        partyName: selected.name,
-      }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        adminName: user?.firstName || "",
+        adminEmail: user?.email || "",
+      };
       if (isEditing && formData._id) {
-        await updateCollection(formData._id, formData);
+        await updateCollection(formData._id, payload);
         toast.success("Updated successfully");
       } else {
-        await addCollection(formData);
+        await addCollection(payload);
         toast.success("Entry saved");
       }
       onSubmitSuccess?.();
@@ -145,6 +135,13 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
           className="relative flex-shrink-0 px-5 py-4 flex items-center justify-between"
           style={{ background: "linear-gradient(135deg, #040d1a 0%, #0a1a35 60%, #061020 100%)" }}
         >
+          <div
+            className="absolute inset-0 opacity-[0.025] pointer-events-none"
+            style={{
+              backgroundImage: "radial-gradient(circle at 1px 1px, #60a5fa 1px, transparent 0)",
+              backgroundSize: "24px 24px",
+            }}
+          />
           <div className="relative flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -161,7 +158,7 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
                 {isEditing ? "Modify Record" : "New Record"}
               </p>
               <h2 className="text-sm font-black text-white leading-tight">
-                {isEditing ? "Update Entry" : "Add Entry"}
+                {isEditing ? "Update Collection" : "Add Collection"}
               </h2>
             </div>
           </div>
@@ -176,55 +173,40 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
 
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#0c1525]" style={{ overscrollBehavior: "contain" }}>
           <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3">
-            <Field label="Date">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                required
-                className={inputCls}
-              />
-            </Field>
 
-            <Field label="Party Name">
+            <Field label="Retailer">
               <select
-                name="partyId"
                 value={formData.partyId || ""}
-                onChange={handlePartySelect}
+                onChange={handleRetailerSelect}
                 required
                 className={`${inputCls} appearance-none`}
               >
-                <option value="">Select Party</option>
-                {parties.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
+                <option value="">Select Retailer</option>
+                {retailers.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.retailerName} — {r.date}
                   </option>
                 ))}
               </select>
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Bag">
-                <input
-                  type="number"
-                  name="bag"
-                  value={formData.bag || ""}
-                  onChange={handleChange}
-                  placeholder="0"
-                  required
-                  className={inputCls}
-                />
+              <Field label="Date">
+                <div className={readonlyCls}>{formData.date || "—"}</div>
+              </Field>
+              <Field label="Party Name">
+                <div className={readonlyCls}>{formData.partyName || "—"}</div>
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Bag / Quantity">
+                <div className={readonlyCls}>{formData.bag || "—"}</div>
               </Field>
               <Field label="Rate (৳)">
-                <input
-                  type="number"
-                  name="rate"
-                  value={formData.rate || ""}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  required
-                  className={inputCls}
-                />
+                <div className={readonlyCls}>
+                  {formData.rate ? `৳${Number(formData.rate).toLocaleString()}` : "—"}
+                </div>
               </Field>
             </div>
 
@@ -242,38 +224,29 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Truck Fair Type">
-                <select
-                  name="truckFairType"
-                  value={formData.truckFairType}
-                  onChange={handleChange}
-                  className={`${inputCls} appearance-none`}
-                >
-                  <option value="party">Party Add</option>
-                  <option value="self">Self Add</option>
-                </select>
+                <div className={readonlyCls}>
+                  {formData.truckFairType === "party" ? "Party Add" : "Self Add"}
+                </div>
               </Field>
               <Field label="Truck Fair (৳)">
-                <input
-                  type="number"
-                  name="truckFair"
-                  value={formData.truckFair || ""}
-                  onChange={handleChange}
-                  placeholder="0"
-                  className={inputCls}
-                />
+                <div className={readonlyCls}>
+                  {formData.truckFair ? `৳${Number(formData.truckFair).toLocaleString()}` : "—"}
+                </div>
               </Field>
             </div>
 
-            <Field label="Previous Due (৳)">
-              <input
-                type="number"
-                name="previousDue"
-                value={formData.previousDue || ""}
-                onChange={handleChange}
-                placeholder="0"
-                className={inputCls}
-              />
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Previous Due (৳)">
+                <div className={readonlyCls}>
+                  {formData.previousDue ? `৳${Number(formData.previousDue).toLocaleString()}` : "—"}
+                </div>
+              </Field>
+              <Field label="Cash Collection / Deposit (৳)">
+                <div className={readonlyCls}>
+                  {formData.cashCollection ? `৳${Number(formData.cashCollection).toLocaleString()}` : "—"}
+                </div>
+              </Field>
+            </div>
 
             <div
               className="rounded-xl px-4 py-3.5 flex items-center justify-between gap-3"
@@ -296,8 +269,11 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
                   <span className="text-[9px] font-semibold text-red-400/70">
                     Due ৳{(formData.previousDue || 0).toLocaleString()}
                   </span>
+                  <span className="text-[9px] font-semibold text-emerald-400/70">
+                    Deposit ৳{(formData.cashCollection || 0).toLocaleString()}
+                  </span>
                   <span className="text-[9px] font-semibold text-yellow-400/70">
-                    Truck ৳{(formData.truckFair || 0).toLocaleString()} ({formData.truckFairType})
+                    Truck ৳{(formData.truckFair || 0).toLocaleString()} ({formData.truckFairType === "party" ? "Party" : "Self"})
                   </span>
                 </div>
               </div>
@@ -313,7 +289,7 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !formData.partyId}
                 className="py-3 rounded-xl text-white font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
                 style={{
                   background: "linear-gradient(135deg, #0d1f3c 0%, #1e3a5f 100%)",

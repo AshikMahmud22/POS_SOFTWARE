@@ -54,6 +54,9 @@ const RetailerFormSummary: React.FC<Props> = ({ formData, loading, isEditing, on
           <span className="text-[9px] font-semibold text-emerald-400/70">
             Dep ৳{(formData.deposit || 0).toLocaleString()}
           </span>
+          <span className="text-[9px] font-semibold text-yellow-400/70">
+            Truck ৳{(formData.truckFair || 0).toLocaleString()} ({formData.truckFairType === "company" ? "Company" : "Self"})
+          </span>
         </div>
       </div>
 
