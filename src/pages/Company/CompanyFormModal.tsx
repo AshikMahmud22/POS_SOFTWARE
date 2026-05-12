@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PlusCircle, Edit3, X, Save, Calculator } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AxiosError } from "axios";
 import { useAuth } from "../../lib/AuthProvider";
-import { addCompanyEntry, updateCompanyEntry } from "../../services/companyService";
+import { addCompanyEntry, updateCompanyEntry, getPreviousDue } from "../../services/companyService";
 import {
-  ICompanyEntry, MONTHS, Month, IBankDeposit, IDhakaDo, IGhatDo, EMPTY_COMPANY_FORM,
+  ICompanyEntry, MONTHS, Month, IBankDeposit, IDhakaDo, IGhatDo, EMPTY_COMPANY_FORM, DoSource,
 } from "../../types/companies";
 
 const MONTH_NUMBER: Record<string, string> = {
@@ -32,6 +32,9 @@ type NestedType<T> = T extends "bankDeposit"
 const inputCls =
   "w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-xs font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
 
+const readonlyCls =
+  "w-full px-3 py-1.5 rounded-lg border border-orange-200 dark:border-orange-700/40 bg-orange-50 dark:bg-orange-900/10 text-orange-700 dark:text-orange-300 text-xs font-bold outline-none cursor-default select-none";
+
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="space-y-0.5">
     <label className="block text-[8px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 ml-0.5">
@@ -49,6 +52,9 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [day, setDay] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [previousDue, setPreviousDue] = useState<number>(0);
+  const [fetchingDue, setFetchingDue] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,57 +72,52 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
       setYear(new Date().getFullYear().toString());
       setDay("");
     }
+    setPreviousDue(0);
   }, [isOpen, initialData, user]);
 
   useEffect(() => {
-    if (!formData.dhakaDo || !formData.ghatDo || !formData.bankDeposit) return;
+    const companyName = formData.companyName?.trim();
+    if (!companyName || companyName.length < 2) {
+      setPreviousDue(0);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setFetchingDue(true);
+      try {
+        const res = await getPreviousDue({
+          companyName,
+          category: "",
+          excludeId: isEditing && formData._id ? String(formData._id) : undefined,
+        });
+        setPreviousDue(Number(res.previousDue) || 0);
+      } catch {
+        setPreviousDue(0);
+      } finally {
+        setFetchingDue(false);
+      }
+    }, 600);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [formData.companyName, isEditing, formData._id]);
 
-    const dBag = Number(formData.dhakaDo.bag) || 0;
-    const dRate = Number(formData.dhakaDo.rate) || 0;
-    const gBag = Number(formData.ghatDo.bag) || 0;
-    const gRate = Number(formData.ghatDo.rate) || 0;
-    const prevDo = Number(formData.previousDo) || 0;
-    const todayLifting = Number(formData.doLifting) || 0;
-    const cash = Number(formData.bankDeposit.cash) || 0;
-    const commission = Number(formData.bankDeposit.commission) || 0;
+  const dhakaRate = Number(formData.dhakaDo?.rate) || 0;
+  const ghatRate = Number(formData.ghatDo?.rate) || 0;
+  const dhakaBag = Number(formData.dhakaDo?.bag) || 0;
+  const ghatBag = Number(formData.ghatDo?.bag) || 0;
+  const todayLifting = Number(formData.doLifting) || 0;
+  const cash = Number(formData.bankDeposit?.cash) || 0;
+  const commission = Number(formData.bankDeposit?.commission) || 0;
 
-    const dAmount = dBag * dRate;
-    const gAmount = gBag * gRate;
-    const advDoQty = dBag + gBag;
-    const advDoAmount = dAmount + gAmount;
-    const totalDeposit = cash + commission;
-    const excess = advDoQty + prevDo - todayLifting;
-
-    setFormData((prev) => {
-      if (
-        prev.dhakaDo.amount === dAmount &&
-        prev.ghatDo.amount === gAmount &&
-        prev.bankDeposit.totalDeposit === totalDeposit &&
-        prev.advDoQty === advDoQty &&
-        prev.excessDoQty === excess &&
-        prev.year === year
-      )
-        return prev;
-
-      return {
-        ...prev,
-        dhakaDo: { ...prev.dhakaDo, amount: dAmount },
-        ghatDo: { ...prev.ghatDo, amount: gAmount },
-        bankDeposit: { ...prev.bankDeposit, totalDeposit },
-        advDoQty,
-        advDoAmount,
-        excessDoQty: excess,
-        year,
-      };
-    });
-  }, [
-    formData.dhakaDo,
-    formData.ghatDo,
-    formData.bankDeposit,
-    formData.previousDo,
-    formData.doLifting,
-    year,
-  ]);
+  const maxLifting = formData.doSource === "factory" ? dhakaBag : ghatBag;
+  const totalDeposit = cash + commission;
+  const advDoQty = dhakaBag + ghatBag;
+  const excessDoQty = advDoQty - todayLifting;
+  const totalAmount = formData.doSource === "factory"
+    ? todayLifting * dhakaRate
+    : todayLifting * ghatRate;
+  const dueAmount = totalAmount - totalDeposit + previousDue;
 
   const handleNestedChange = <T extends NestedKeys>(
     parent: T,
@@ -137,10 +138,18 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
     setLoading(true);
     try {
       const dateStr = `${year}-${MONTH_NUMBER[formData.month] || "01"}-${day.padStart(2, "0")}`;
-      const payload = {
+      const payload: Partial<ICompanyEntry> = {
         ...formData,
         year,
         createdAt: new Date(dateStr).toISOString(),
+        dueAmount,
+        excessDoQty,
+        previousDue,
+        dhakaDo: { ...formData.dhakaDo, amount: dhakaBag * dhakaRate },
+        ghatDo: { ...formData.ghatDo, amount: ghatBag * ghatRate },
+        bankDeposit: { ...formData.bankDeposit, totalDeposit },
+        advDoQty,
+        advDoAmount: dhakaBag * dhakaRate + ghatBag * ghatRate,
       };
       if (isEditing && formData._id) {
         await updateCompanyEntry(formData._id, payload);
@@ -160,16 +169,6 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
   };
 
   if (!isOpen) return null;
-
-  const advDoAmount =
-    (Number(formData.dhakaDo?.bag) * Number(formData.dhakaDo?.rate)) +
-    (Number(formData.ghatDo?.bag) * Number(formData.ghatDo?.rate));
-
-  const totalDeposit =
-    (Number(formData.bankDeposit?.cash) || 0) +
-    (Number(formData.bankDeposit?.commission) || 0);
-
-  const dueAmount = advDoAmount - totalDeposit;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
@@ -194,13 +193,18 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <Field label="Company Name">
-              <input
-                value={formData.companyName || ""}
-                onChange={(e) => setFormData((p) => ({ ...p, companyName: e.target.value }))}
-                className={inputCls}
-                placeholder="Enter Company"
-                required
-              />
+              <div className="relative">
+                <input
+                  value={formData.companyName || ""}
+                  onChange={(e) => setFormData((p) => ({ ...p, companyName: e.target.value }))}
+                  className={inputCls}
+                  placeholder="Enter Company"
+                  required
+                />
+                {fetchingDue && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                )}
+              </div>
             </Field>
             <Field label="Year">
               <input
@@ -260,7 +264,10 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
                   <input
                     type="number"
                     value={formData.dhakaDo?.bag || ""}
-                    onChange={(e) => handleNestedChange("dhakaDo", "bag", e.target.value)}
+                    onChange={(e) => {
+                      handleNestedChange("dhakaDo", "bag", e.target.value);
+                      setFormData((p) => ({ ...p, doLifting: "" }));
+                    }}
                     className={inputCls}
                   />
                 </Field>
@@ -275,7 +282,7 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
                 <div className="col-span-2 flex items-center justify-between px-2 py-1.5 rounded bg-blue-500/10 border border-blue-500/20">
                   <span className="text-[8px] font-black text-blue-400 uppercase">Dhaka Amount</span>
                   <span className="text-xs font-bold text-blue-400">
-                    ৳ {((Number(formData.dhakaDo?.bag) || 0) * (Number(formData.dhakaDo?.rate) || 0)).toLocaleString()}
+                    ৳ {(dhakaBag * dhakaRate).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -288,7 +295,10 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
                   <input
                     type="number"
                     value={formData.ghatDo?.bag || ""}
-                    onChange={(e) => handleNestedChange("ghatDo", "bag", e.target.value)}
+                    onChange={(e) => {
+                      handleNestedChange("ghatDo", "bag", e.target.value);
+                      setFormData((p) => ({ ...p, doLifting: "" }));
+                    }}
                     className={inputCls}
                   />
                 </Field>
@@ -303,7 +313,7 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
                 <div className="col-span-2 flex items-center justify-between px-2 py-1.5 rounded bg-emerald-500/10 border border-emerald-500/20">
                   <span className="text-[8px] font-black text-emerald-400 uppercase">Ghat Amount</span>
                   <span className="text-xs font-bold text-emerald-400">
-                    ৳ {((Number(formData.ghatDo?.bag) || 0) * (Number(formData.ghatDo?.rate) || 0)).toLocaleString()}
+                    ৳ {(ghatBag * ghatRate).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -313,44 +323,59 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 space-y-3">
                 <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
                   <Calculator size={12} />
-                  <span className="text-[9px] font-black uppercase">Advance DO & Excess Calculation</span>
-                </div>
-
-                <div className="flex items-center justify-between px-2 py-2 rounded bg-blue-500/10 border border-blue-500/20">
-                  <span className="text-[8px] font-black text-blue-400 uppercase">Advance DO</span>
-                  <div className="flex flex-col items-end gap-0.5">
-                    <span className="text-xs font-bold text-blue-400">
-                      {Number(formData.advDoQty) || 0} Bags
-                    </span>
-                    <span className="text-[9px] font-bold text-blue-300">
-                      ৳ {advDoAmount.toLocaleString()}
-                    </span>
-                  </div>
+                  <span className="text-[9px] font-black uppercase">Lifting & Deposit</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Previous DO (One Time)">
-                    <input
-                      type="number"
-                      value={formData.previousDo || ""}
-                      onChange={(e) => setFormData((p) => ({ ...p, previousDo: e.target.value }))}
-                      className={inputCls}
-                      placeholder="One time input"
-                    />
-                  </Field>
-                  <Field label="Today Lifting">
+                  <Field label={`Today Lifting Bags (Max ${maxLifting})`}>
                     <input
                       type="number"
                       value={formData.doLifting || ""}
-                      onChange={(e) => setFormData((p) => ({ ...p, doLifting: e.target.value }))}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val > maxLifting) return;
+                        setFormData((p) => ({ ...p, doLifting: e.target.value }));
+                      }}
+                      max={maxLifting}
                       className={inputCls}
-                      placeholder="Factory / Ghat"
+                      placeholder={`Max ${maxLifting} bags`}
                     />
+                  </Field>
+                  <Field label="Lifting Source">
+                    <div className="flex gap-1.5 h-[30px]">
+                      <button
+                        type="button"
+                        onClick={() => setFormData((p) => ({ ...p, doSource: "factory" as DoSource, doLifting: "" }))}
+                        className={`flex-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border ${
+                          formData.doSource === "factory"
+                            ? "bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/20"
+                            : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400 hover:border-blue-400"
+                        }`}
+                      >
+                        Factory
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((p) => ({ ...p, doSource: "ghat" as DoSource, doLifting: "" }))}
+                        className={`flex-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border ${
+                          formData.doSource === "ghat"
+                            ? "bg-emerald-600 border-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                            : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400 hover:border-emerald-400"
+                        }`}
+                      >
+                        Ghat
+                      </button>
+                    </div>
                   </Field>
                 </div>
 
-                <div className="text-[8px] text-slate-400 dark:text-slate-500 px-1 leading-relaxed">
-                  Excess DO = Advance DO + Previous DO − Today Lifting
+                <div className="flex items-center justify-between px-2 py-1.5 rounded bg-slate-500/10 border border-slate-500/20">
+                  <span className="text-[8px] font-black text-slate-400 uppercase">Rate Used</span>
+                  <span className="text-xs font-bold text-slate-300">
+                    {formData.doSource === "factory"
+                      ? `৳ ${dhakaRate.toLocaleString()} (Dhaka)`
+                      : `৳ ${ghatRate.toLocaleString()} (Ghat)`}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -369,31 +394,43 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
                       value={formData.bankDeposit?.commission || ""}
                       onChange={(e) => handleNestedChange("bankDeposit", "commission", e.target.value)}
                       className={inputCls}
-                      placeholder="Commission amount"
+                      placeholder="Commission"
                     />
                   </Field>
                 </div>
 
-                <div className="space-y-0.5">
-                  <Field label={`Commission Reason (${wordCount(formData.bankDeposit?.commissionReason || "")} / 20 words)`}>
+                <Field label={`Commission Reason (${wordCount(formData.bankDeposit?.commissionReason || "")} / 20 words)`}>
+                  <input
+                    value={formData.bankDeposit?.commissionReason || ""}
+                    onChange={(e) => {
+                      const words = e.target.value.trim().split(/\s+/);
+                      if (e.target.value.trim() === "" || words.length <= 20) {
+                        handleNestedChange("bankDeposit", "commissionReason", e.target.value);
+                      }
+                    }}
+                    className={inputCls}
+                    placeholder="Why commission? (max 20 words)"
+                  />
+                </Field>
+
+                <Field label={fetchingDue ? "Previous Due (loading...)" : "Previous Due (auto from backend)"}>
+                  <div className="relative">
                     <input
-                      value={formData.bankDeposit?.commissionReason || ""}
-                      onChange={(e) => {
-                        const words = e.target.value.trim().split(/\s+/);
-                        if (e.target.value.trim() === "" || words.length <= 20) {
-                          handleNestedChange("bankDeposit", "commissionReason", e.target.value);
-                        }
-                      }}
-                      className={inputCls}
-                      placeholder="Why commission? (max 20 words)"
+                      readOnly
+                      value={previousDue === 0 ? "" : `৳ ${previousDue.toLocaleString()}`}
+                      placeholder={fetchingDue ? "Fetching..." : "Auto filled from company history"}
+                      className={readonlyCls}
                     />
-                  </Field>
-                </div>
+                    {fetchingDue && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin" />
+                    )}
+                  </div>
+                </Field>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div className="p-2.5 rounded-lg bg-slate-900 text-white flex flex-col justify-center gap-0.5">
               <span className="text-[7px] font-black text-blue-400 uppercase tracking-tighter">Total Deposit</span>
               <span className="text-sm font-bold">৳ {totalDeposit.toLocaleString()}</span>
@@ -401,17 +438,24 @@ const CompanyFormModal: React.FC<FormModalProps> = ({
             </div>
             <div className="p-2.5 rounded-lg bg-slate-900 text-white flex flex-col justify-center gap-0.5">
               <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">Excess DO</span>
-              <span className={`text-sm font-bold ${Number(formData.excessDoQty) < 0 ? "text-red-400" : "text-emerald-400"}`}>
-                {Number(formData.excessDoQty) || 0} Bags
+              <span className={`text-sm font-bold ${excessDoQty < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {excessDoQty} Bags
               </span>
-              <span className="text-[8px] text-slate-400">Adv + Prev − Lifting</span>
+              <span className="text-[8px] text-slate-400">Adv DO − Lifting</span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-slate-900 text-white flex flex-col justify-center gap-0.5">
+              <span className="text-[7px] font-black text-purple-400 uppercase tracking-tighter">Total Amount</span>
+              <span className="text-sm font-bold text-purple-400">৳ {totalAmount.toLocaleString()}</span>
+              <span className="text-[8px] text-slate-400">
+                Lifting × {formData.doSource === "factory" ? "Dhaka" : "Ghat"} Rate
+              </span>
             </div>
             <div className="p-2.5 rounded-lg bg-slate-900 text-white flex flex-col justify-center gap-0.5">
               <span className="text-[7px] font-black text-orange-400 uppercase tracking-tighter">Due Amount</span>
               <span className={`text-sm font-bold ${dueAmount < 0 ? "text-red-400" : "text-orange-400"}`}>
                 ৳ {dueAmount.toLocaleString()}
               </span>
-              <span className="text-[8px] text-slate-400">Adv DO − Deposit</span>
+              <span className="text-[8px] text-slate-400">Amt − Deposit + Prev</span>
             </div>
           </div>
 

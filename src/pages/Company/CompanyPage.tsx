@@ -18,7 +18,8 @@ const CompanyPage: React.FC = () => {
     year: string;
     category: string;
     subcategory: string;
-  }>({ month: "", year: "", category: "", subcategory: "" });
+    company: string;
+  }>({ month: "", year: "", category: "", subcategory: "", company: "" });
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const isFirstLoad = useRef<boolean>(true);
 
@@ -43,10 +44,12 @@ const CompanyPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-  const availableYears = useMemo(() =>
-    Array.from(new Set(entries.map((e) => e.year))).sort((a, b) => Number(b) - Number(a)),
-    [entries]
-  );
+const availableYears = useMemo(() => {
+  const filtered = filter.company
+    ? entries.filter((e) => e.companyName === filter.company)
+    : entries;
+  return Array.from(new Set(filtered.map((e) => e.year))).sort((a, b) => Number(b) - Number(a));
+}, [entries, filter.company]);
 
   const availableMonths = useMemo(() => {
     if (!filter.year) return [];
@@ -70,6 +73,11 @@ const CompanyPage: React.FC = () => {
     ));
   }, [entries, filter.year, filter.month, filter.category]);
 
+  const availableCompanies = useMemo(() =>
+    Array.from(new Set(entries.map((e) => e.companyName).filter(Boolean))).sort(),
+    [entries]
+  );
+
   const filteredEntries = useMemo(() => {
     return entries.filter((ent) => {
       const matchesSearch = ent.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -77,7 +85,8 @@ const CompanyPage: React.FC = () => {
       const matchesMonth = filter.month === "" || ent.month === filter.month;
       const matchesCategory = filter.category === "" || ent.category === filter.category;
       const matchesSubcategory = filter.subcategory === "" || ent.subcategory === filter.subcategory;
-      return matchesSearch && matchesYear && matchesMonth && matchesCategory && matchesSubcategory;
+      const matchesCompany = filter.company === "" || ent.companyName === filter.company;
+      return matchesSearch && matchesYear && matchesMonth && matchesCategory && matchesSubcategory && matchesCompany;
     });
   }, [entries, searchTerm, filter]);
 
@@ -89,7 +98,7 @@ const CompanyPage: React.FC = () => {
   );
 
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
-  const hasActiveFilters = searchTerm || filter.year || filter.month || filter.category || filter.subcategory;
+  const hasActiveFilters = searchTerm || filter.year || filter.month || filter.category || filter.subcategory || filter.company;
 
   return (
     <div className="md:p-8 min-h-screen bg-gray-50 dark:bg-black/20 mt-10">
@@ -110,7 +119,7 @@ const CompanyPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 space-y-4 bg-white dark:bg-gray-900 shadow-sm flex md:justify-between justify-center items-center flex-wrap">
+      <div className="p-5 rounded-[1.5rem] border dark:border-gray-800 mb-8 space-y-4 bg-white dark:bg-gray-900 shadow-sm flex md:justify-between justify-center items-center flex-wrap gap-4">
         <div className="relative w-80">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
@@ -124,13 +133,23 @@ const CompanyPage: React.FC = () => {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <select
-            value={filter.year}
-            onChange={(e) => { setFilter({ year: e.target.value, month: "", category: "", subcategory: "" }); setCurrentPage(1); }}
-            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent min-w-[130px]"
+            value={filter.company}
+            onChange={(e) => { setFilter((prev) => ({ ...prev, company: e.target.value })); setCurrentPage(1); }}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent min-w-[150px]"
           >
-            <option value="">All Years</option>
-            {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
+            <option value="">All Companies</option>
+            {availableCompanies.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
+
+         <select
+  value={filter.year}
+  onChange={(e) => { setFilter({ year: e.target.value, month: "", category: "", subcategory: "", company: filter.company }); setCurrentPage(1); }}
+  disabled={!filter.company}
+  className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
+>
+  <option value="">All Years</option>
+  {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
+</select>
 
           <select
             value={filter.month}
@@ -164,7 +183,7 @@ const CompanyPage: React.FC = () => {
 
           {hasActiveFilters && (
             <button
-              onClick={() => { setFilter({ year: "", month: "", category: "", subcategory: "" }); setSearchTerm(""); setCurrentPage(1); }}
+              onClick={() => { setFilter({ year: "", month: "", category: "", subcategory: "", company: "" }); setSearchTerm(""); setCurrentPage(1); }}
               className="text-[10px] font-black uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-red-200 dark:border-red-900/30 px-4 py-2.5 rounded-xl"
             >
               Reset

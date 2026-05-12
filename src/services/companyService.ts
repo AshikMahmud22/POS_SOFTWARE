@@ -1,5 +1,5 @@
 import API from "../api/axiosInstance";
-import { ICategory, ICompanyEntry } from "../types/companies";
+import { ICategory, ICompanyEntry, IPreviousDueResponse } from "../types/companies";
 
 export interface IGetEntriesParams {
   page?: number;
@@ -64,5 +64,15 @@ export const deleteCompanyEntry = async (id: string) => {
   const { data } = await API.delete<{ success: boolean; message: string }>(
     `/companies/delete/${id}`
   );
+  return data;
+};
+
+export const getPreviousDue = async (params: {
+  companyName: string;
+  category: string;
+  subcategory?: string;
+  excludeId?: string;
+}) => {
+  const { data } = await API.get<IPreviousDueResponse>("/companies/previous-due", { params });
   return data;
 };

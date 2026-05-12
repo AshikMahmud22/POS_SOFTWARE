@@ -23,6 +23,8 @@ export interface ICategory {
   subcategories: string[];
 }
 
+export type DoSource = "factory" | "ghat";
+
 export interface ICompanyEntry {
   _id?: string;
   companyName: string;
@@ -31,6 +33,7 @@ export interface ICompanyEntry {
   product: string;
   category: string;
   subcategory: string;
+  doSource: DoSource;
   dhakaDo: IDhakaDo;
   ghatDo: IGhatDo;
   bankDeposit: IBankDeposit;
@@ -39,6 +42,8 @@ export interface ICompanyEntry {
   doLifting: number | string;
   excessDoQty?: number | string;
   previousDo?: number | string;
+  previousDue?: number | string;
+  dueAmount?: number | string;
   adminName?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -73,6 +78,12 @@ export interface IActionResponse {
   data?: ICompanyEntry;
 }
 
+export interface IPreviousDueResponse {
+  success: boolean;
+  previousDue: number;
+  previousDoBags: number;
+}
+
 export const MONTHS = [
   "January", "February", "March", "April",
   "May", "June", "July", "August",
@@ -88,6 +99,7 @@ export const EMPTY_COMPANY_FORM: ICompanyEntry = {
   product: "",
   category: "",
   subcategory: "",
+  doSource: "factory",
   dhakaDo: { bag: "", rate: "", amount: "" },
   ghatDo: { bag: "", rate: "", amount: "" },
   bankDeposit: {
@@ -101,4 +113,6 @@ export const EMPTY_COMPANY_FORM: ICompanyEntry = {
   doLifting: "",
   excessDoQty: "",
   previousDo: "",
+  previousDue: "",
+  dueAmount: "",
 };
