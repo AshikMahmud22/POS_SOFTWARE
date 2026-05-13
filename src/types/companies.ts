@@ -42,6 +42,8 @@ export interface ICompanyEntry {
   doLifting: number | string;
   excessDoQty?: number | string;
   previousDo?: number | string;
+  previousDoRate?: number | string;
+  previousDoAmount?: number | string;
   previousDue?: number | string;
   dueAmount?: number | string;
   adminName?: string;
@@ -113,6 +115,8 @@ export const EMPTY_COMPANY_FORM: ICompanyEntry = {
   doLifting: "",
   excessDoQty: "",
   previousDo: "",
+  previousDoRate: "",
+  previousDoAmount: "",
   previousDue: "",
   dueAmount: "",
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2, Factory, Waves, Calendar, Tag, TrendingUp, TrendingDown } from "lucide-react";
+import { Edit2, Trash2, Factory, Waves, Calendar, Tag } from "lucide-react";
 import { ICompanyEntry } from "../../types/companies";
 import { deleteCompanyEntry } from "../../services/companyService";
 import { toast } from "react-hot-toast";
@@ -60,7 +60,7 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1525] shadow-sm">
-      <table className="w-full text-center border-collapse min-w-[1400px] text-nowrap">
+      <table className="w-full text-center border-collapse min-w-[1600px] text-nowrap">
         <thead>
           <tr className="bg-slate-100/80 dark:bg-slate-900/80">
             {[
@@ -69,11 +69,13 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
               { label: "Source" },
               { label: "Dhaka DO" },
               { label: "Ghat DO" },
+              { label: "Previous DO" },
               { label: "Advance DO" },
               { label: "Excess DO" },
               { label: "Lifting" },
               { label: "Prev Due (৳)" },
-              { label: "Deposit & Due" },
+              { label: "Due (৳)" },
+              { label: "Deposit" },
               { label: "Actions" },
             ].map(({ label, align = "text-center" }) => (
               <th
@@ -88,7 +90,7 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
           {sortedCompanies.length === 0 ? (
             <tr>
-              <td colSpan={11} className="px-6 py-20 text-center text-slate-500 text-lg font-bold italic">
+              <td colSpan={13} className="px-6 py-20 text-center text-slate-500 text-lg font-bold italic">
                 No records found.
               </td>
             </tr>
@@ -106,6 +108,9 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
               const totalDeposit = cash + commission;
               const previousDue = Number(item.previousDue) || 0;
               const dueAmount = Number(item.dueAmount) || 0;
+              const prevDoBag = Number(item.previousDo) || 0;
+              const prevDoRate = Number(item.previousDoRate) || 0;
+              const prevDoAmount = Number(item.previousDoAmount) || 0;
 
               return (
                 <tr key={String(item._id)} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors">
@@ -145,11 +150,11 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                     )}
                   </td>
 
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4 ">
                     <span className={`text-xs font-bold block ${isFactory ? "text-blue-700 dark:text-blue-400" : "text-slate-400"}`}>
                       {Number(item.dhakaDo?.bag) || 0} Bags
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 mt-0.5 inline-block">
+                    <span className="text-[9px]  font-bold text-slate-400 mt-0.5 inline-block">
                       ৳ {(Number(item.dhakaDo?.rate) || 0).toLocaleString()}/bag
                     </span>
                     <span className="text-[9px] font-bold text-blue-400 block mt-0.5">
@@ -170,10 +175,22 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                   </td>
 
                   <td className="px-4 py-4">
-                    <span className="text-xs font-bold text-blue-700 dark:text-blue-400 block">
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 block">
+                      {prevDoBag} Bags
+                    </span>
+                    <span className="text-[9px] font-bold text-slate-400 mt-0.5 inline-block">
+                      ৳ {prevDoRate.toLocaleString()}/bag
+                    </span>
+                    <span className="text-[9px] font-bold text-amber-400 block mt-0.5">
+                      ৳ {prevDoAmount.toLocaleString()}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-4">
+                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 block">
                       {advDoQty} Bags
                     </span>
-                    <span className="text-[9px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded mt-1 inline-block">
+                    <span className="text-[9px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded mt-1 inline-block">
                       ৳ {advDoAmount.toLocaleString()}
                     </span>
                   </td>
@@ -199,15 +216,15 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                     </span>
                   </td>
 
+                  <td className="px-4 py-4">
+                    <span className={`text-xs font-bold ${dueAmount < 0 ? "text-red-500 dark:text-red-400" : "text-orange-500 dark:text-orange-400"}`}>
+                      ৳ {dueAmount.toLocaleString()}
+                    </span>
+                  </td>
+
                   <td className="px-4 py-4 border-x dark:border-slate-800">
-                    <div className="space-y-1 min-w-[160px]">
+                    <div className="space-y-1 min-w-[150px]">
                       <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total Deposit</span>
-                        <span className="text-[10px] font-bold text-slate-800 dark:text-white">
-                          ৳ {totalDeposit.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center border-t dark:border-slate-800 pt-1">
                         <span className="text-[9px] font-bold text-slate-400 uppercase">Cash</span>
                         <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400">
                           ৳ {cash.toLocaleString()}
@@ -219,15 +236,6 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                           ৳ {commission.toLocaleString()}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center border-t dark:border-slate-800 pt-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-0.5">
-                          {dueAmount < 0 ? <TrendingDown size={9} className="text-red-400" /> : <TrendingUp size={9} className="text-orange-400" />}
-                          Due
-                        </span>
-                        <span className={`text-[10px] font-bold ${dueAmount < 0 ? "text-red-500" : "text-orange-500"}`}>
-                          ৳ {dueAmount.toLocaleString()}
-                        </span>
-                      </div>
                       {item.bankDeposit?.commissionReason && (
                         <div className="border-t dark:border-slate-800 pt-1">
                           <span className="text-[9px] text-slate-400 italic leading-tight block text-left">
@@ -235,6 +243,12 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                           </span>
                         </div>
                       )}
+                      <div className="flex justify-between items-center border-t dark:border-slate-800 pt-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white">
+                          ৳ {totalDeposit.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </td>
 

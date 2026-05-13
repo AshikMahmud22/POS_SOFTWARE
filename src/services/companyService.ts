@@ -44,6 +44,13 @@ export const getCompanyEntries = async (params: IGetEntriesParams) => {
   return data;
 };
 
+export const getCompanyEntry = async (id: string) => {
+  const { data } = await API.get<{ success: boolean; data: ICompanyEntry }>(
+    `/companies/entry/${id}`
+  );
+  return data;
+};
+
 export const addCompanyEntry = async (entryData: Partial<ICompanyEntry>) => {
   const { data } = await API.post<{ success: boolean; message: string }>(
     "/companies/add",
@@ -69,7 +76,7 @@ export const deleteCompanyEntry = async (id: string) => {
 
 export const getPreviousDue = async (params: {
   companyName: string;
-  category: string;
+  category?: string;
   subcategory?: string;
   excludeId?: string;
 }) => {

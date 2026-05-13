@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { PlusCircle, Loader2, Search } from "lucide-react";
-import CompanyFormModal from "./CompanyFormModal";
+import { useNavigate } from "react-router";
 import { Pagination } from "../../components/Pagination/Pagination";
-import { ICompanyEntry, EMPTY_COMPANY_FORM } from "../../types/companies";
+import { ICompanyEntry } from "../../types/companies";
 import CompanyTable from "./CompanyTable";
 import { getCompanyEntries } from "../../services/companyService";
 
 const CompanyPage: React.FC = () => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<ICompanyEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingData, setEditingData] = useState<ICompanyEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filter, setFilter] = useState<{
@@ -44,39 +43,67 @@ const CompanyPage: React.FC = () => {
     fetchEntries();
   }, [refreshTrigger]);
 
-const availableYears = useMemo(() => {
-  const filtered = filter.company
-    ? entries.filter((e) => e.companyName === filter.company)
-    : entries;
-  return Array.from(new Set(filtered.map((e) => e.year))).sort((a, b) => Number(b) - Number(a));
-}, [entries, filter.company]);
-
-  const availableMonths = useMemo(() => {
-    if (!filter.year) return [];
-    return Array.from(new Set(entries.filter((e) => e.year === filter.year).map((e) => e.month)));
-  }, [entries, filter.year]);
-
-  const availableCategories = useMemo(() => {
-    if (!filter.year || !filter.month) return [];
-    return Array.from(new Set(
-      entries.filter((e) => e.year === filter.year && e.month === filter.month)
-        .map((e) => e.category).filter(Boolean)
-    ));
-  }, [entries, filter.year, filter.month]);
-
-  const availableSubcategories = useMemo(() => {
-    if (!filter.year || !filter.month || !filter.category) return [];
-    return Array.from(new Set(
-      entries.filter((e) =>
-        e.year === filter.year && e.month === filter.month && e.category === filter.category
-      ).map((e) => e.subcategory).filter(Boolean)
-    ));
-  }, [entries, filter.year, filter.month, filter.category]);
-
   const availableCompanies = useMemo(() =>
     Array.from(new Set(entries.map((e) => e.companyName).filter(Boolean))).sort(),
     [entries]
   );
+
+  const availableYears = useMemo(() => {
+    if (!filter.company) return [];
+    return Array.from(
+      new Set(
+        entries
+          .filter((e) => e.companyName === filter.company)
+          .map((e) => e.year)
+      )
+    ).sort((a, b) => Number(b) - Number(a));
+  }, [entries, filter.company]);
+
+  const availableMonths = useMemo(() => {
+    if (!filter.company || !filter.year) return [];
+    return Array.from(
+      new Set(
+        entries
+          .filter((e) => e.companyName === filter.company && e.year === filter.year)
+          .map((e) => e.month)
+      )
+    );
+  }, [entries, filter.company, filter.year]);
+
+  const availableCategories = useMemo(() => {
+    if (!filter.company || !filter.year || !filter.month) return [];
+    return Array.from(
+      new Set(
+        entries
+          .filter(
+            (e) =>
+              e.companyName === filter.company &&
+              e.year === filter.year &&
+              e.month === filter.month
+          )
+          .map((e) => e.category)
+          .filter(Boolean)
+      )
+    );
+  }, [entries, filter.company, filter.year, filter.month]);
+
+  const availableSubcategories = useMemo(() => {
+    if (!filter.company || !filter.year || !filter.month || !filter.category) return [];
+    return Array.from(
+      new Set(
+        entries
+          .filter(
+            (e) =>
+              e.companyName === filter.company &&
+              e.year === filter.year &&
+              e.month === filter.month &&
+              e.category === filter.category
+          )
+          .map((e) => e.subcategory)
+          .filter(Boolean)
+      )
+    );
+  }, [entries, filter.company, filter.year, filter.month, filter.category]);
 
   const filteredEntries = useMemo(() => {
     return entries.filter((ent) => {
@@ -112,7 +139,7 @@ const availableYears = useMemo(() => {
           </p>
         </div>
         <button
-          onClick={() => { setEditingData(null); setIsModalOpen(true); }}
+          onClick={() => navigate("/companies-details/new")}
           className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
         >
           <PlusCircle size={20} /> New Entry
@@ -134,26 +161,35 @@ const availableYears = useMemo(() => {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <select
             value={filter.company}
-            onChange={(e) => { setFilter((prev) => ({ ...prev, company: e.target.value })); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilter({ company: e.target.value, year: "", month: "", category: "", subcategory: "" });
+              setCurrentPage(1);
+            }}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent min-w-[150px]"
           >
             <option value="">All Companies</option>
             {availableCompanies.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
 
-         <select
-  value={filter.year}
-  onChange={(e) => { setFilter({ year: e.target.value, month: "", category: "", subcategory: "", company: filter.company }); setCurrentPage(1); }}
-  disabled={!filter.company}
-  className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
->
-  <option value="">All Years</option>
-  {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
-</select>
+          <select
+            value={filter.year}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, year: e.target.value, month: "", category: "", subcategory: "" }));
+              setCurrentPage(1);
+            }}
+            disabled={!filter.company}
+            className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
+          >
+            <option value="">All Years</option>
+            {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
 
           <select
             value={filter.month}
-            onChange={(e) => { setFilter((prev) => ({ ...prev, month: e.target.value, category: "", subcategory: "" })); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, month: e.target.value, category: "", subcategory: "" }));
+              setCurrentPage(1);
+            }}
             disabled={!filter.year}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
@@ -163,7 +199,10 @@ const availableYears = useMemo(() => {
 
           <select
             value={filter.category}
-            onChange={(e) => { setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" })); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, category: e.target.value, subcategory: "" }));
+              setCurrentPage(1);
+            }}
             disabled={!filter.month}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
@@ -173,7 +212,10 @@ const availableYears = useMemo(() => {
 
           <select
             value={filter.subcategory}
-            onChange={(e) => { setFilter((prev) => ({ ...prev, subcategory: e.target.value })); setCurrentPage(1); }}
+            onChange={(e) => {
+              setFilter((prev) => ({ ...prev, subcategory: e.target.value }));
+              setCurrentPage(1);
+            }}
             disabled={!filter.category}
             className="bg-gray-50 dark:bg-gray-800 dark:text-white px-4 py-2.5 rounded-xl font-bold outline-none text-sm cursor-pointer border dark:border-transparent disabled:opacity-30 min-w-[130px]"
           >
@@ -183,7 +225,11 @@ const availableYears = useMemo(() => {
 
           {hasActiveFilters && (
             <button
-              onClick={() => { setFilter({ year: "", month: "", category: "", subcategory: "", company: "" }); setSearchTerm(""); setCurrentPage(1); }}
+              onClick={() => {
+                setFilter({ year: "", month: "", category: "", subcategory: "", company: "" });
+                setSearchTerm("");
+                setCurrentPage(1);
+              }}
               className="text-[10px] font-black uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-red-200 dark:border-red-900/30 px-4 py-2.5 rounded-xl"
             >
               Reset
@@ -200,7 +246,7 @@ const availableYears = useMemo(() => {
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm overflow-hidden border dark:border-gray-800">
           <CompanyTable
             companies={currentData}
-            onEdit={(item) => { setEditingData(item); setIsModalOpen(true); }}
+            onEdit={(item) => navigate(`/companies-details/edit/${item._id}`)}
             refreshData={async () => handleRefresh()}
           />
         </div>
@@ -211,14 +257,6 @@ const availableYears = useMemo(() => {
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
-
-      <CompanyFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmitSuccess={handleRefresh}
-        isEditing={!!editingData}
-        initialData={editingData || EMPTY_COMPANY_FORM}
-      />
     </div>
   );
 };

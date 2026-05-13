@@ -13,6 +13,7 @@ import PartyPage from "./pages/Party/PartyPage";
 import CollectionPage from "./pages/Collection/CollectionPage";
 import RetailerPage from "./pages/Retailer/RetailerPage";
 import RetailerTrash from "./pages/Retailer/RetailerTrash";
+import CompanyFormPage from "./pages/Company/CompanyFormPage/CompanyFormPage";
 // import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
@@ -55,6 +56,26 @@ export default function App() {
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
                     <CompanyPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/companies-details/new"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <CompanyFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/companies-details/edit/:id"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <CompanyFormPage />
                   </ProtectedRoute>
                 }
               />
