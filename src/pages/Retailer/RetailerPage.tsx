@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PlusCircle, Filter, Loader2 } from "lucide-react";
-import RetailerFormModal from "./RetailerFormModal/RetailerFormModal";
+import { useNavigate } from "react-router";
 import { Pagination } from "../../components/Pagination/Pagination";
 import { getRetailerEntries } from "../../services/retailerService";
 import { IRetailerEntry } from "../../types/retailer";
 import RetailerTable from "./RetailerTable";
 
 const RetailerPage: React.FC = () => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<IRetailerEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingData, setEditingData] = useState<IRetailerEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filter, setFilter] = useState<{
     month: string;
@@ -113,33 +112,6 @@ const RetailerPage: React.FC = () => {
     currentPage * itemsPerPage
   );
 
-  const initialEmpty: IRetailerEntry = {
-    date: new Date().toISOString().split("T")[0],
-    month: new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date()),
-    year: new Date().getFullYear().toString(),
-    retailerName: "",
-    proprietorName: "",
-    address: "",
-    mobile: "",
-    companyId: "",
-    companyName: "",
-    category: "",
-    subcategory: "",
-    rateType: "factory",
-    doFactory: 0,
-    doGhat: 0,
-    quantity: 0,
-    totalCost: 0,
-    previousDue: 0,
-    deposit: 0,
-    truckFair: 0,
-    restTotalAmount: 0,
-    sign: "",
-    adminEmail: "",
-    adminName: "",
-    truckFairType: "self",
-  };
-
   const handleRefresh = (): void => setRefreshTrigger((prev) => !prev);
   const hasActiveFilters = filter.year || filter.month || filter.companyName || filter.category || filter.subcategory;
 
@@ -155,10 +127,7 @@ const RetailerPage: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => {
-            setEditingData(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => navigate("/retailer/new")}
           className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white px-8 py-4 rounded-2xl flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm"
         >
           <PlusCircle size={20} /> New Entry
@@ -256,10 +225,7 @@ const RetailerPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm overflow-hidden border dark:border-gray-800">
           <RetailerTable
             data={currentData}
-            onEdit={(item: IRetailerEntry) => {
-              setEditingData(item);
-              setIsModalOpen(true);
-            }}
+            onEdit={(item: IRetailerEntry) => navigate(`/retailer/edit/${item._id}`)}
             refreshData={async () => handleRefresh()}
           />
         </div>
@@ -270,14 +236,6 @@ const RetailerPage: React.FC = () => {
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
-
-      <RetailerFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmitSuccess={handleRefresh}
-        isEditing={!!editingData}
-        initialData={editingData || initialEmpty}
-      />
     </div>
   );
 };

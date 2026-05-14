@@ -16,9 +16,11 @@ interface FormModalProps {
   isEditing: boolean;
 }
 
-const inputCls = "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
+const inputCls =
+  "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
 
-const readonlyCls = "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/40 bg-slate-100 dark:bg-slate-700/30 text-slate-600 dark:text-slate-400 text-sm font-semibold cursor-not-allowed";
+const autoCls =
+  "w-full px-3.5 py-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 text-sm font-semibold outline-none cursor-default select-none";
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="space-y-1">
@@ -47,21 +49,17 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
       document.body.style.paddingRight = "0px";
       return;
     }
-
     const sw = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
     document.body.style.paddingRight = `${sw}px`;
-
     setFormData({
       ...initialData,
       adminName: user?.firstName || "",
       adminEmail: user?.email || "",
     });
-
     getRetailerEntries().then((res) => {
       if (res.success) setRetailers(res.data);
     });
-
     return () => {
       document.body.style.overflow = "unset";
       document.body.style.paddingRight = "0px";
@@ -73,12 +71,6 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
   const handleRetailerSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = retailers.find((r) => r._id === e.target.value);
     if (!selected) return;
-
-    const rate =
-      selected.rateType === "factory"
-        ? Number(selected.doFactory)
-        : Number(selected.doGhat);
-
     setFormData((prev) => ({
       ...prev,
       partyId: selected._id || "",
@@ -87,10 +79,11 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
       month: selected.month,
       year: selected.year,
       bag: selected.quantity,
-      rate: rate,
+      rate: Number(selected.ratePrice) || 0,
+      rateType: selected.rateType,
       totalCost: selected.totalCost,
-      truckFair: selected.truckFair,
-      truckFairType: selected.truckFairType === "company" ? "party" : "self",
+      truckFair: Number(selected.truckFair) || 0,
+      truckFairType: selected.truckFairType,
       previousDue: selected.previousDue,
       cashCollection: selected.deposit,
       totalDeposit: selected.deposit,
@@ -124,11 +117,14 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
     }
   };
 
+  const isRetailerTruck = formData.truckFairType === "retailer";
+  const rateTypeLabel = formData.rateType === "factory" ? "DO Factory" : "DO Ghat";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
       <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="relative w-full max-w-lg lg:max-w-xl lg:ml-64 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col border border-white/5"
+        className="relative w-full max-w-lg lg:max-w-xl lg:ml-64 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col border border-white/5 mt-15"
         style={{ maxHeight: "90svh" }}
       >
         <div
@@ -147,11 +143,7 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
               style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}
             >
-              {isEditing ? (
-                <Edit2 size={14} className="text-blue-400" />
-              ) : (
-                <PlusCircle size={14} className="text-blue-400" />
-              )}
+              {isEditing ? <Edit2 size={14} className="text-blue-400" /> : <PlusCircle size={14} className="text-blue-400" />}
             </div>
             <div>
               <p className="text-[8px] font-black uppercase tracking-[0.2em]" style={{ color: "rgba(96,165,250,0.6)" }}>
@@ -192,20 +184,31 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Date">
-                <div className={readonlyCls}>{formData.date || "—"}</div>
+                <div className={autoCls}>{formData.date || "—"}</div>
               </Field>
               <Field label="Party Name">
-                <div className={readonlyCls}>{formData.partyName || "—"}</div>
+                <div className={autoCls}>{formData.partyName || "—"}</div>
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <Field label="Bag / Quantity">
-                <div className={readonlyCls}>{formData.bag || "—"}</div>
+                <div className={autoCls}>{formData.bag || "—"}</div>
               </Field>
-              <Field label="Rate (৳)">
-                <div className={readonlyCls}>
-                  {formData.rate ? `৳${Number(formData.rate).toLocaleString()}` : "—"}
+              <Field label={`Rate (${formData.rateType ? rateTypeLabel : "৳"})`}>
+                <div className={autoCls}>
+                  {formData.rate ? `৳ ${Number(formData.rate).toLocaleString()}` : "—"}
+                </div>
+              </Field>
+              <Field label="Source">
+                <div className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-bold outline-none cursor-default select-none ${
+                  formData.rateType === "factory"
+                    ? "border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400"
+                    : formData.rateType === "ghat"
+                    ? "border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400"
+                    : autoCls
+                }`}>
+                  {formData.rateType ? rateTypeLabel : "—"}
                 </div>
               </Field>
             </div>
@@ -214,36 +217,36 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
               className="rounded-xl px-4 py-3 flex items-center justify-between"
               style={{ background: "rgba(59,130,246,0.06)", border: "1px dashed rgba(59,130,246,0.3)" }}
             >
-              <span className="text-[9px] font-black uppercase tracking-widest text-blue-500">
-                Total Cost
-              </span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-blue-500">Landing Rate</span>
               <span className="text-lg font-black text-blue-600 dark:text-blue-400">
-                ৳{(formData.totalCost || 0).toLocaleString()}
+                ৳ {(formData.totalCost || 0).toLocaleString()}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Truck Fair Type">
-                <div className={readonlyCls}>
-                  {formData.truckFairType === "party" ? "Party Add" : "Self Add"}
+              <Field label="Truck Fair By">
+                <div className={autoCls}>
+                  {formData.truckFairType === "retailer" ? "Retailer" : "Dealer"}
                 </div>
               </Field>
               <Field label="Truck Fair (৳)">
-                <div className={readonlyCls}>
-                  {formData.truckFair ? `৳${Number(formData.truckFair).toLocaleString()}` : "—"}
+                <div className={autoCls}>
+                  {formData.truckFair
+                    ? `${isRetailerTruck ? "−" : ""} ৳ ${Number(formData.truckFair).toLocaleString()}`
+                    : "—"}
                 </div>
               </Field>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Previous Due (৳)">
-                <div className={readonlyCls}>
-                  {formData.previousDue ? `৳${Number(formData.previousDue).toLocaleString()}` : "—"}
+                <div className={autoCls}>
+                  {formData.previousDue ? `৳ ${Number(formData.previousDue).toLocaleString()}` : "—"}
                 </div>
               </Field>
               <Field label="Cash Collection / Deposit (৳)">
-                <div className={readonlyCls}>
-                  {formData.cashCollection ? `৳${Number(formData.cashCollection).toLocaleString()}` : "—"}
+                <div className={autoCls}>
+                  {formData.cashCollection ? `৳ ${Number(formData.cashCollection).toLocaleString()}` : "—"}
                 </div>
               </Field>
             </div>
@@ -257,23 +260,23 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
             >
               <div>
                 <p className="text-[8px] font-black uppercase tracking-[0.18em] mb-1" style={{ color: "rgba(96,165,250,0.6)" }}>
-                  Party Balance
+                  total Balance
                 </p>
                 <p className="text-2xl font-black text-white tracking-tight leading-none">
-                  ৳{(formData.partyBalance || 0).toLocaleString()}
+                  ৳ {(formData.partyBalance || 0).toLocaleString()}
                 </p>
                 <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-1">
                   <span className="text-[9px] font-semibold" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    Cost ৳{(formData.totalCost || 0).toLocaleString()}
+                    Cost ৳ {(formData.totalCost || 0).toLocaleString()}
                   </span>
-                  <span className="text-[9px] font-semibold text-red-400/70">
-                    Due ৳{(formData.previousDue || 0).toLocaleString()}
+                  <span className="text-[9px] font-semibold" style={{ color: "rgba(248,113,113,0.7)" }}>
+                    Due ৳ {(formData.previousDue || 0).toLocaleString()}
                   </span>
-                  <span className="text-[9px] font-semibold text-emerald-400/70">
-                    Deposit ৳{(formData.cashCollection || 0).toLocaleString()}
+                  <span className="text-[9px] font-semibold" style={{ color: "rgba(52,211,153,0.7)" }}>
+                    Deposit ৳ {(formData.cashCollection || 0).toLocaleString()}
                   </span>
-                  <span className="text-[9px] font-semibold text-yellow-400/70">
-                    Truck ৳{(formData.truckFair || 0).toLocaleString()} ({formData.truckFairType === "party" ? "Party" : "Self"})
+                  <span className="text-[9px] font-semibold" style={{ color: "rgba(148,163,184,0.5)" }}>
+                    Truck {isRetailerTruck ? "−" : ""} ৳ {(formData.truckFair || 0).toLocaleString()} ({isRetailerTruck ? "Retailer" : "Dealer"})
                   </span>
                 </div>
               </div>

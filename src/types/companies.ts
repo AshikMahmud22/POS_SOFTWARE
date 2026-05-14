@@ -30,7 +30,6 @@ export interface ICompanyEntry {
   companyName: string;
   year: string;
   month: string;
-  product: string;
   category: string;
   subcategory: string;
   doSource: DoSource;
@@ -98,7 +97,6 @@ export const EMPTY_COMPANY_FORM: ICompanyEntry = {
   companyName: "",
   year: "",
   month: "",
-  product: "",
   category: "",
   subcategory: "",
   doSource: "factory",

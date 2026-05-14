@@ -80,7 +80,7 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
             ].map(({ label, align = "text-center" }) => (
               <th
                 key={label}
-                className={`px-4 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 ${align}`}
+                className={`px-4 py-4 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700 ${align}`}
               >
                 {label}
               </th>
@@ -119,19 +119,19 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                     <p className="text-sm font-bold text-blue-700 dark:text-blue-400 uppercase leading-tight">
                       {item.companyName}
                     </p>
-                    <p className="text-[10px] font-black text-slate-400 mt-1 flex items-center gap-1">
+                    <p className="text-[10px] font-black text-slate-700 dark:text-slate-400 mt-1 flex items-center gap-1">
                       <Calendar size={9} />
                       {day} {item.month} {item.year}
                     </p>
                     {item.adminName && (
-                      <p className="text-[9px] text-slate-400 mt-0.5">{item.adminName}</p>
+                      <p className="text-[12px] text-slate-700 dark:text-slate-400 mt-0.5">{item.adminName}</p>
                     )}
                   </td>
 
                   <td className="px-4 py-4">
                     <p className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase">{item.category}</p>
                     {item.subcategory && (
-                      <span className="inline-flex items-center gap-0.5 mt-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-400 rounded">
+                      <span className="inline-flex items-center gap-0.5 mt-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 rounded">
                         <Tag size={8} />
                         {item.subcategory}
                       </span>
@@ -151,22 +151,22 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                   </td>
 
                   <td className="px-4 py-4 ">
-                    <span className={`text-xs font-bold block ${isFactory ? "text-blue-700 dark:text-blue-400" : "text-slate-400"}`}>
+                    <span className={`text-xs font-bold block ${isFactory ? "text-blue-700 dark:text-blue-400" : "text-slate-700 dark:text-slate-400"}`}>
                       {Number(item.dhakaDo?.bag) || 0} Bags
                     </span>
-                    <span className="text-[9px]  font-bold text-slate-400 mt-0.5 inline-block">
+                    <span className="text-[9px]  font-bold text-slate-700 dark:text-slate-400 mt-0.5 inline-block">
                       ৳ {(Number(item.dhakaDo?.rate) || 0).toLocaleString()}/bag
                     </span>
-                    <span className="text-[9px] font-bold text-blue-400 block mt-0.5">
+                    <span className="text-[9px] font-bold text-blue-500 block mt-0.5">
                       ৳ {(Number(item.dhakaDo?.amount) || 0).toLocaleString()}
                     </span>
                   </td>
 
                   <td className="px-4 py-4">
-                    <span className={`text-xs font-bold block ${!isFactory ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400"}`}>
+                    <span className={`text-xs font-bold block ${!isFactory ? "text-emerald-700 dark:text-emerald-400" : "text-slate-700 dark:text-slate-400"}`}>
                       {Number(item.ghatDo?.bag) || 0} Bags
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 mt-0.5 inline-block">
+                    <span className="text-[9px] font-bold text-slate-700 dark:text-slate-400 mt-0.5 inline-block">
                       ৳ {(Number(item.ghatDo?.rate) || 0).toLocaleString()}/bag
                     </span>
                     <span className="text-[9px] font-bold text-emerald-400 block mt-0.5">
@@ -178,7 +178,7 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                     <span className="text-xs font-bold text-amber-600 dark:text-amber-400 block">
                       {prevDoBag} Bags
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 mt-0.5 inline-block">
+                    <span className="text-[9px] font-bold text-slate-700 dark:text-slate-400 mt-0.5 inline-block">
                       ৳ {prevDoRate.toLocaleString()}/bag
                     </span>
                     <span className="text-[9px] font-bold text-amber-400 block mt-0.5">
@@ -205,13 +205,13 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                     <span className="text-xs font-bold text-orange-600 dark:text-orange-400 block">
                       {Number(item.doLifting || 0).toLocaleString()} Bags
                     </span>
-                    <span className="text-[9px] text-slate-400 mt-0.5 inline-block">
+                    <span className="text-[9px] text-slate-700 dark:text-slate-400 mt-0.5 inline-block">
                       {isFactory ? "Factory" : "Ghat"} Rate
                     </span>
                   </td>
 
                   <td className="px-4 py-4">
-                    <span className={`text-xs font-bold ${previousDue > 0 ? "text-purple-600 dark:text-purple-400" : "text-slate-400"}`}>
+                    <span className={`text-xs font-bold ${previousDue > 0 ? "text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-400"}`}>
                       ৳ {previousDue.toLocaleString()}
                     </span>
                   </td>
@@ -225,26 +225,26 @@ const CompanyTable: React.FC<CompanyTableProps> = ({ companies, onEdit, refreshD
                   <td className="px-4 py-4 border-x dark:border-slate-800">
                     <div className="space-y-1 min-w-[150px]">
                       <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Cash</span>
+                        <span className="text-[9px] font-bold text-slate-700 dark:text-slate-400 uppercase">Cash</span>
                         <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400">
                           ৳ {cash.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between items-center border-t dark:border-slate-800 pt-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Commission</span>
+                        <span className="text-[9px] font-bold text-slate-700 dark:text-slate-400 uppercase">Commission</span>
                         <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">
                           ৳ {commission.toLocaleString()}
                         </span>
                       </div>
                       {item.bankDeposit?.commissionReason && (
                         <div className="border-t dark:border-slate-800 pt-1">
-                          <span className="text-[9px] text-slate-400 italic leading-tight block text-left">
+                          <span className="text-[9px] text-slate-700 dark:text-slate-400 italic leading-tight block text-left">
                             {item.bankDeposit.commissionReason}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between items-center border-t dark:border-slate-800 pt-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                        <span className="text-[9px] font-bold text-slate-700 dark:text-slate-400 uppercase">Total</span>
                         <span className="text-[10px] font-black text-slate-800 dark:text-white">
                           ৳ {totalDeposit.toLocaleString()}
                         </span>

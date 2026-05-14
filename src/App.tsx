@@ -14,6 +14,7 @@ import CollectionPage from "./pages/Collection/CollectionPage";
 import RetailerPage from "./pages/Retailer/RetailerPage";
 import RetailerTrash from "./pages/Retailer/RetailerTrash";
 import CompanyFormPage from "./pages/Company/CompanyFormPage/CompanyFormPage";
+import RetailerFormPage from "./pages/Retailer/RetailerFormModal/RetailerFormPage";
 // import DealerPage from "./pages/Dealer/DealerPage";
 // import ProfitPage from "./pages/Profit/ProfitPage";
 // import DeliveryCostPage from "./pages/Delivery/DeliveryCostPage";
@@ -46,6 +47,26 @@ export default function App() {
                     allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
                   >
                     <RetailerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/retailer/new"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <RetailerFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/retailer/edit/:id"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                  >
+                    <RetailerFormPage />
                   </ProtectedRoute>
                 }
               />

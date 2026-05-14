@@ -17,8 +17,9 @@ const EMPTY: ICollection = {
   partyName: "",
   bag: 0,
   rate: 0,
+  rateType: "factory",
   totalCost: 0,
-  truckFairType: "party",
+  truckFairType: "dealer",
   truckFair: 0,
   previousDue: 0,
   cashCollection: 0,
@@ -81,19 +82,13 @@ const CollectionPage: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => {
-            setEditingData(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => { setEditingData(null); setIsModalOpen(true); }}
           className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white p-4 rounded-full sm:flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm hidden sm:block"
         >
           <PlusCircle size={20} /> New Entry
         </button>
         <button
-          onClick={() => {
-            setEditingData(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => { setEditingData(null); setIsModalOpen(true); }}
           className="w-auto dark:border bg-blue-950 dark:bg-transparent dark:border-gray-700 text-white p-4 rounded-full flex items-center justify-center gap-3 font-black shadow-xl hover:scale-105 transition-all uppercase text-sm sm:hidden"
         >
           <PlusCircle size={20} />
@@ -105,10 +100,7 @@ const CollectionPage: React.FC = () => {
         <input
           type="text"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
           placeholder="Search by retailer name or date..."
           className="w-full pl-10 pr-10 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
@@ -130,26 +122,16 @@ const CollectionPage: React.FC = () => {
         <>
           <CollectionTable
             data={paginatedEntries}
-            onEdit={(item) => {
-              setEditingData(item);
-              setIsModalOpen(true);
-            }}
+            onEdit={(item) => { setEditingData(item); setIsModalOpen(true); }}
             refreshData={handleRefresh}
           />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </>
       )}
 
       <CollectionFormModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingData(null);
-        }}
+        onClose={() => { setIsModalOpen(false); setEditingData(null); }}
         onSubmitSuccess={handleRefresh}
         isEditing={!!editingData}
         initialData={editingData || EMPTY}

@@ -6,6 +6,11 @@ interface ApiResponse {
   data: IRetailerEntry[];
 }
 
+interface SingleApiResponse {
+  success: boolean;
+  data: IRetailerEntry;
+}
+
 interface SuccessResponse {
   success: boolean;
   message: string;
@@ -16,21 +21,18 @@ export const getRetailerEntries = async (): Promise<ApiResponse> => {
   return res.data;
 };
 
-export const addRetailerEntry = async (
-  formData: IRetailerEntry
-): Promise<SuccessResponse> => {
+export const getRetailerEntry = async (id: string): Promise<SingleApiResponse> => {
+  const res = await API.get<SingleApiResponse>(`/retailer/get-entry/${id}`);
+  return res.data;
+};
+
+export const addRetailerEntry = async (formData: IRetailerEntry): Promise<SuccessResponse> => {
   const res = await API.post<SuccessResponse>("/retailer/add-entry", formData);
   return res.data;
 };
 
-export const updateRetailerEntry = async (
-  id: string,
-  formData: Partial<IRetailerEntry>
-): Promise<SuccessResponse> => {
-  const res = await API.put<SuccessResponse>(
-    `/retailer/update-entry/${id}`,
-    formData
-  );
+export const updateRetailerEntry = async (id: string, formData: Partial<IRetailerEntry>): Promise<SuccessResponse> => {
+  const res = await API.put<SuccessResponse>(`/retailer/update-entry/${id}`, formData);
   return res.data;
 };
 
@@ -50,8 +52,6 @@ export const restoreEntry = async (id: string): Promise<SuccessResponse> => {
 };
 
 export const permanentDelete = async (id: string): Promise<SuccessResponse> => {
-  const res = await API.delete<SuccessResponse>(
-    `/retailer/permanent-delete/${id}`
-  );
+  const res = await API.delete<SuccessResponse>(`/retailer/permanent-delete/${id}`);
   return res.data;
 };
