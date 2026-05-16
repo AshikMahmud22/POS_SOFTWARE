@@ -18,6 +18,7 @@ import {
 import { useAuth } from "../../../lib/AuthProvider";
 import {
   addCompanyEntry,
+  getCompanyEntries,
   getCompanyEntry,
   getPreviousDue,
   updateCompanyEntry,
@@ -36,18 +37,27 @@ const CompanyFormPage: React.FC = () => {
   const { user } = useAuth();
   const isEditing = !!id;
 
-  const [formData, setFormData] = useState<ICompanyEntry>({
-    ...EMPTY_COMPANY_FORM,
-  });
+  const [formData, setFormData] = useState<ICompanyEntry>({ ...EMPTY_COMPANY_FORM });
   const [loading, setLoading] = useState(false);
-
   const [day, setDay] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [previousDue, setPreviousDue] = useState<number>(0);
   const [fetchingDue, setFetchingDue] = useState(false);
   const [prevDoBag, setPrevDoBag] = useState<string>("");
   const [prevDoRate, setPrevDoRate] = useState<string>("");
+  const [existingCompanyNames, setExistingCompanyNames] = useState<string[]>([]);
+  const [allEntries, setAllEntries] = useState<ICompanyEntry[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    getCompanyEntries({ limit: 1000 }).then((res) => {
+      if (res.success) {
+        setAllEntries(res.data);
+        const names = Array.from(new Set(res.data.map((e) => e.companyName).filter(Boolean)));
+        setExistingCompanyNames(names);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (isEditing && id) {
@@ -107,6 +117,35 @@ const CompanyFormPage: React.FC = () => {
     };
   }, [formData.companyName, isEditing, id]);
 
+  const handleCompanySelect = (name: string) => {
+    setFormData((p) => ({ ...p, companyName: name }));
+    if (!name.trim()) return;
+    const matches = allEntries.filter((e) => e.companyName === name);
+    if (matches.length === 0) return;
+    const latest = matches.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })[0];
+
+    const latestAdvDoQty = Number(latest.advDoQty) || 0;
+    const latestAdvDoAmount = Number(latest.advDoAmount) || 0;
+    const latestAdvDoRate = latestAdvDoQty > 0 ? latestAdvDoAmount / latestAdvDoQty : 0;
+
+    setFormData((p) => ({
+      ...p,
+      companyName: name,
+      category: latest.category || p.category,
+      subcategory: latest.subcategory || p.subcategory,
+      dhakaDo: latest.dhakaDo || p.dhakaDo,
+      ghatDo: latest.ghatDo || p.ghatDo,
+      bankDeposit: { cash: "", commission: "", commissionReason: "", totalDeposit: "" },
+    }));
+
+    setPrevDoBag(String(latestAdvDoQty));
+    setPrevDoRate(String(latestAdvDoRate.toFixed(2)));
+  };
+
   const dhakaRate = Number(formData.dhakaDo?.rate) || 0;
   const ghatRate = Number(formData.ghatDo?.rate) || 0;
   const dhakaBag = Number(formData.dhakaDo?.bag) || 0;
@@ -114,16 +153,13 @@ const CompanyFormPage: React.FC = () => {
   const prevDoBagNum = Number(prevDoBag) || 0;
   const prevDoRateNum = Number(prevDoRate) || 0;
   const prevDoAmount = prevDoBagNum * prevDoRateNum;
-  const todayLifting = Number(formData.doLifting) || 0;
   const cash = Number(formData.bankDeposit?.cash) || 0;
   const commission = Number(formData.bankDeposit?.commission) || 0;
 
   const advDoTotalBag = dhakaBag + ghatBag + prevDoBagNum;
-  const advDoTotalAmount =
-    dhakaBag * dhakaRate + ghatBag * ghatRate + prevDoAmount;
-  const maxLifting = formData.doSource === "factory" ? dhakaBag : ghatBag;
+  const advDoTotalAmount = dhakaBag * dhakaRate + ghatBag * ghatRate + prevDoAmount;
   const totalDeposit = cash + commission;
-  const excessDoQty = advDoTotalBag - todayLifting;
+  const excessDoQty = advDoTotalBag;
   const rawDue = advDoTotalAmount - totalDeposit + previousDue;
   const dueAmount = rawDue < 0 ? 0 : rawDue;
 
@@ -186,15 +222,11 @@ const CompanyFormPage: React.FC = () => {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black dark:text-white text-blue-950 uppercase tracking-tighter italic">
-                {isEditing ? "Edit Entry" : "New Entry"}
-              </h1>
-            </div>
+            <h1 className="text-2xl font-black dark:text-white text-blue-950 uppercase tracking-tighter italic">
+              {isEditing ? "Edit Entry" : "New Entry"}
+            </h1>
             <p className="text-gray-500 font-bold text-xs mt-0.5 uppercase tracking-widest">
-              {isEditing
-                ? "Update company DO record"
-                : "Create a new company DO record"}
+              {isEditing ? "Update company DO record" : "Create a new company DO record"}
             </p>
           </div>
         </div>
@@ -208,17 +240,18 @@ const CompanyFormPage: React.FC = () => {
               <Field label="Company Name">
                 <div className="relative">
                   <input
+                    list="company-names-list"
                     value={formData.companyName || ""}
-                    onChange={(e) =>
-                      setFormData((p) => ({
-                        ...p,
-                        companyName: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => handleCompanySelect(e.target.value)}
                     className={inputCls}
-                    placeholder="Enter Company"
+                    placeholder="Select or type company"
                     required
                   />
+                  <datalist id="company-names-list">
+                    {existingCompanyNames.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
                   {fetchingDue && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
                   )}
@@ -236,18 +269,11 @@ const CompanyFormPage: React.FC = () => {
               <Field label="Month">
                 <select
                   value={formData.month}
-                  onChange={(e) =>
-                    setFormData((p) => ({
-                      ...p,
-                      month: e.target.value as Month,
-                    }))
-                  }
+                  onChange={(e) => setFormData((p) => ({ ...p, month: e.target.value as Month }))}
                   className={inputCls}
                 >
                   {MONTHS.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
+                    <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
               </Field>
@@ -266,9 +292,7 @@ const CompanyFormPage: React.FC = () => {
               <Field label="Brand / Category">
                 <input
                   value={formData.category}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, category: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((p) => ({ ...p, category: e.target.value }))}
                   className={inputCls}
                   required
                 />
@@ -276,9 +300,7 @@ const CompanyFormPage: React.FC = () => {
               <Field label="Subcategory">
                 <input
                   value={formData.subcategory}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, subcategory: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((p) => ({ ...p, subcategory: e.target.value }))}
                   className={inputCls}
                 />
               </Field>
@@ -287,7 +309,6 @@ const CompanyFormPage: React.FC = () => {
 
           <DoSections
             formData={formData}
-            setFormData={setFormData}
             prevDoBag={prevDoBag}
             setPrevDoBag={setPrevDoBag}
             prevDoRate={prevDoRate}
@@ -297,8 +318,6 @@ const CompanyFormPage: React.FC = () => {
             ghatBag={ghatBag}
             ghatRate={ghatRate}
             prevDoAmount={prevDoAmount}
-            maxLifting={maxLifting}
-            totalDeposit={totalDeposit}
             previousDue={previousDue}
             fetchingDue={fetchingDue}
             advDoTotalBag={advDoTotalBag}
@@ -306,7 +325,7 @@ const CompanyFormPage: React.FC = () => {
             handleNestedChange={handleNestedChange}
           />
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col justify-center gap-1">
               <span className="text-[7px] font-black text-teal-400 uppercase tracking-tighter">
                 Total Deposit
@@ -314,23 +333,9 @@ const CompanyFormPage: React.FC = () => {
               <span className="text-lg font-bold text-teal-400">
                 ৳ {totalDeposit.toLocaleString()}
               </span>
-              <span className="text-[9px] font-bold text-slate-400">
-                Cash + Commission
-              </span>
+              <span className="text-[9px] font-bold text-slate-400">Cash + Commission</span>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col justify-center gap-1">
-              <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">
-                Excess DO
-              </span>
-              <span
-                className={`text-lg font-bold ${excessDoQty < 0 ? "text-red-400" : "text-emerald-400"}`}
-              >
-                {excessDoQty} Bags
-              </span>
-              <span className="text-[9px] text-slate-400">
-                Advance − Lifting
-              </span>
-            </div>
+            
             <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col justify-center gap-1">
               <span className="text-[7px] font-black text-orange-400 uppercase tracking-tighter">
                 Total Due
@@ -338,9 +343,7 @@ const CompanyFormPage: React.FC = () => {
               <span className="text-lg font-bold text-orange-400">
                 ৳ {dueAmount.toLocaleString()}
               </span>
-              <span className="text-[9px] text-slate-400">
-                Adv DO − Deposit + Prev Due
-              </span>
+              <span className="text-[9px] text-slate-400">Adv DO − Deposit + Prev Due</span>
             </div>
           </div>
 
