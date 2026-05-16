@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2, MapPin, Users } from "lucide-react";
+import { Edit2, Trash2, MapPin, Users, Phone, Store, User } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { IParty } from "../../types/party";
 import { deleteParty } from "../../services/partyService";
@@ -15,9 +15,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <span className="text-sm font-bold dark:text-white text-gray-800">
-            Delete this party?
-          </span>
+          <span className="text-sm font-bold dark:text-white text-gray-800">Delete this party?</span>
           <div className="flex gap-2">
             <button
               onClick={async () => {
@@ -55,22 +53,23 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
 
   return (
     <div className="w-full rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-x-auto">
-      <table className="text-left border-collapse min-w-[500px] w-full">
+      <table className="text-center border-collapse min-w-[800px] w-full text-nowrap ">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
             <th className="px-4 py-3 border-b dark:border-gray-800 w-12">#</th>
             <th className="px-4 py-3 border-b dark:border-gray-800">Party Name</th>
+            <th className="px-4 py-3 border-b dark:border-gray-800">Retailer Name</th>
+            <th className="px-4 py-3 border-b dark:border-gray-800">Proprietor</th>
+            <th className="px-4 py-3 border-b dark:border-gray-800">Address</th>
             <th className="px-4 py-3 border-b dark:border-gray-800">Location</th>
+            <th className="px-4 py-3 border-b dark:border-gray-800">Mobile</th>
             <th className="px-4 py-3 border-b dark:border-gray-800 text-center w-24">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y dark:divide-gray-800">
           {sortedData.length > 0 ? (
             sortedData.map((item, index) => (
-              <tr
-                key={item._id}
-                className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-              >
+              <tr key={item._id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                 <td className="px-4 py-3">
                   <span className="text-xs font-black text-gray-300 dark:text-gray-600">
                     {String(index + 1).padStart(2, "0")}
@@ -83,19 +82,43 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
                         {item.name.charAt(0)}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                      {item.name}
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{item.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Store size={11} className="text-slate-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                      {item.retailerName || "—"}
                     </span>
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <div
-                    className="flex items-center gap-1.5 cursor-pointer"
-                    onClick={() => toast(item.location, { duration: 3000, icon: "📍" })}
-                  >
+                  <div className="flex items-center gap-1.5">
+                    <User size={11} className="text-slate-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                      {item.proprietorName || "—"}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    {item.address || "—"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
                     <MapPin size={11} className="text-blue-400 flex-shrink-0" />
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                       {item.location || "—"}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Phone size={11} className="text-emerald-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                      {item.mobile || "—"}
                     </span>
                   </div>
                 </td>
@@ -119,14 +142,12 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
             ))
           ) : (
             <tr>
-              <td colSpan={4} className="px-4 py-16 text-center">
+              <td colSpan={8} className="px-4 py-16 text-center">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     <Users size={20} className="text-gray-400" />
                   </div>
-                  <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
-                    No parties found
-                  </p>
+                  <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">No parties found</p>
                 </div>
               </td>
             </tr>

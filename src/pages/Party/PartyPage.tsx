@@ -33,9 +33,17 @@ const PartyPage: React.FC = () => {
     fetchParties();
   }, []);
 
-  const filteredParties = parties.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredParties = parties.filter((p) => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      p.name.toLowerCase().includes(q) ||
+      (p.retailerName || "").toLowerCase().includes(q) ||
+      (p.proprietorName || "").toLowerCase().includes(q) ||
+      (p.mobile || "").includes(q) ||
+      (p.location || "").toLowerCase().includes(q)
+    );
+  });
 
   const totalPages = Math.ceil(filteredParties.length / ITEMS_PER_PAGE);
 
@@ -46,11 +54,6 @@ const PartyPage: React.FC = () => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleClearSearch = () => {
-    setSearch("");
     setCurrentPage(1);
   };
 
@@ -89,20 +92,17 @@ const PartyPage: React.FC = () => {
       </div>
 
       <div className="relative mb-6 max-w-sm">
-        <Search
-          size={15}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-        />
+        <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
           onChange={handleSearchChange}
-          placeholder="Search by party name..."
-          className="w-full pl-10 pr-4 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
+          placeholder="Search by name, mobile, location..."
+          className="w-full pl-10 pr-10 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
         {search && (
           <button
-            onClick={handleClearSearch}
+            onClick={() => { setSearch(""); setCurrentPage(1); }}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 font-black text-xs uppercase"
           >
             Clear

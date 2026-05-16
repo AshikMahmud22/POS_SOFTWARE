@@ -11,20 +11,58 @@ interface PartyModalProps {
   editingData: IParty | null;
 }
 
+const inputCls =
+  "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
+
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-1">
+    <label className="block text-[9px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500 ml-0.5">
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+const EMPTY_FORM = {
+  name: "",
+  location: "",
+  retailerName: "",
+  proprietorName: "",
+  address: "",
+  mobile: "",
+};
+
 const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, editingData }) => {
-  const [formData, setFormData] = useState<{ name: string; location: string }>({ name: "", location: "" });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isOpen) return;
     if (editingData) {
-      setFormData({ name: editingData.name, location: editingData.location });
+      setFormData({
+        name: editingData.name || "",
+        location: editingData.location || "",
+        retailerName: editingData.retailerName || "",
+        proprietorName: editingData.proprietorName || "",
+        address: editingData.address || "",
+        mobile: editingData.mobile || "",
+      });
     } else {
-      setFormData({ name: "", location: "" });
+      setFormData(EMPTY_FORM);
     }
   }, [isOpen, editingData]);
 
   if (!isOpen) return null;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "mobile") {
+      const v = value.replace(/[^0-9]/g, "").slice(0, 11);
+      setFormData((p) => ({ ...p, mobile: v }));
+      return;
+    }
+    setFormData((p) => ({ ...p, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,10 +86,7 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, edi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/5 bg-white dark:bg-[#0c1525]">
         <div
           className="px-5 py-4 flex items-center justify-between"
@@ -62,17 +97,10 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, edi
               className="w-8 h-8 rounded-lg flex items-center justify-center"
               style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}
             >
-              {editingData ? (
-                <Edit2 size={14} className="text-blue-400" />
-              ) : (
-                <PlusCircle size={14} className="text-blue-400" />
-              )}
+              {editingData ? <Edit2 size={14} className="text-blue-400" /> : <PlusCircle size={14} className="text-blue-400" />}
             </div>
             <div>
-              <p
-                className="text-[8px] font-black uppercase tracking-[0.2em]"
-                style={{ color: "rgba(96,165,250,0.6)" }}
-              >
+              <p className="text-[8px] font-black uppercase tracking-[0.2em]" style={{ color: "rgba(96,165,250,0.6)" }}>
                 {editingData ? "Modify Party" : "New Party"}
               </p>
               <h2 className="text-sm font-black text-white leading-tight">
@@ -90,30 +118,72 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, edi
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-slate-50 dark:bg-[#0c1525]">
-          <div className="space-y-1">
-            <label className="block text-[9px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500 ml-0.5">
-              Party Name
-            </label>
-            <input
-              value={formData.name}
-              onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. ABC Trading"
-              required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Party Name">
+              <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g. ABC Trading"
+                required
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Location">
+              <input
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="e.g. Dhaka"
+                required
+                className={inputCls}
+              />
+            </Field>
           </div>
-          <div className="space-y-1">
-            <label className="block text-[9px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500 ml-0.5">
-              Location
-            </label>
-            <input
-              value={formData.location}
-              onChange={(e) => setFormData((p) => ({ ...p, location: e.target.value }))}
-              placeholder="e.g. Dhaka"
-              required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
-            />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Retailer Name">
+              <input
+                name="retailerName"
+                value={formData.retailerName}
+                onChange={handleChange}
+                placeholder="Al-Amin Store"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Proprietor Name">
+              <input
+                name="proprietorName"
+                value={formData.proprietorName}
+                onChange={handleChange}
+                placeholder="Md. Rahim"
+                className={inputCls}
+              />
+            </Field>
           </div>
+
+          <Field label="Address">
+            <input
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="Dhaka Sadar"
+              className={inputCls}
+            />
+          </Field>
+
+          <Field label="Mobile No. (11 digits)">
+            <input
+              type="tel"
+              name="mobile"
+              value={formData.mobile}
+              onChange={handleChange}
+              placeholder="01700000000"
+              maxLength={11}
+              inputMode="numeric"
+              className={inputCls}
+            />
+          </Field>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <button
