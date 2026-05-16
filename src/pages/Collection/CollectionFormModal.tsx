@@ -41,6 +41,7 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
   const { user } = useAuth();
   const [formData, setFormData] = useState<ICollection>(initialData);
   const [retailers, setRetailers] = useState<IRetailerEntry[]>([]);
+  const [selectedRetailerName, setSelectedRetailerName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -57,6 +58,7 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
       adminName: user?.firstName || "",
       adminEmail: user?.email || "",
     });
+    setSelectedRetailerName("");
     getRetailerEntries().then((res) => {
       if (res.success) setRetailers(res.data);
     });
@@ -68,27 +70,29 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleRetailerSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = retailers.find((r) => r._id === e.target.value);
-    if (!selected) return;
-    setFormData((prev) => ({
-      ...prev,
-      partyId: selected._id || "",
-      partyName: selected.retailerName,
-      date: selected.date,
-      month: selected.month,
-      year: selected.year,
-      bag: selected.quantity,
-      rate: Number(selected.ratePrice) || 0,
-      rateType: selected.rateType,
-      totalCost: selected.totalCost,
-      truckFair: Number(selected.truckFair) || 0,
-      truckFairType: selected.truckFairType,
-      previousDue: selected.previousDue,
-      cashCollection: selected.deposit,
-      totalDeposit: selected.deposit,
-      partyBalance: selected.restTotalAmount,
-    }));
+  const handlePartyNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSelectedRetailerName(value);
+    const selected = retailers.find(
+      (r) => r.retailerName.toLowerCase() === value.toLowerCase()
+    );
+    if (selected) {
+      setFormData((prev) => ({
+        ...prev,
+        partyId: selected._id || "",
+        partyName: selected.proprietorName,
+        cashCollection: Number(selected.deposit) || 0,
+        partyBalance: Number(selected.restTotalAmount) || 0,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        partyId: "",
+        partyName: "",
+        cashCollection: 0,
+        partyBalance: 0,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,9 +120,6 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
       setLoading(false);
     }
   };
-
-  const isRetailerTruck = formData.truckFairType === "retailer";
-  const rateTypeLabel = formData.rateType === "factory" ? "DO Factory" : "DO Ghat";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
@@ -166,120 +167,48 @@ const CollectionFormModal: React.FC<FormModalProps> = ({
         <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#0c1525]" style={{ overscrollBehavior: "contain" }}>
           <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3">
 
-            <Field label="Retailer">
-              <select
-                value={formData.partyId || ""}
-                onChange={handleRetailerSelect}
-                required
-                className={`${inputCls} appearance-none`}
-              >
-                <option value="">Select Retailer</option>
-                {retailers.map((r) => (
-                  <option key={r._id} value={r._id}>
-                    {r.retailerName} — {r.date}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Date">
-                <div className={autoCls}>{formData.date || "—"}</div>
+              <Field label="Retailer Name">
+                <input
+                  list="retailer-names-list"
+                  value={selectedRetailerName}
+                  onChange={handlePartyNameChange}
+                  placeholder="Select or type name"
+                  required
+                  className={inputCls}
+                />
+                <datalist id="retailer-names-list">
+                  {retailers.map((r) => (
+                    <option key={r._id} value={r.retailerName} />
+                  ))}
+                </datalist>
               </Field>
               <Field label="Party Name">
                 <div className={autoCls}>{formData.partyName || "—"}</div>
               </Field>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <Field label="Bag / Quantity">
-                <div className={autoCls}>{formData.bag || "—"}</div>
-              </Field>
-              <Field label={`Rate (${formData.rateType ? rateTypeLabel : "৳"})`}>
-                <div className={autoCls}>
-                  {formData.rate ? `৳ ${Number(formData.rate).toLocaleString()}` : "—"}
-                </div>
-              </Field>
-              <Field label="Source">
-                <div className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-bold outline-none cursor-default select-none ${
-                  formData.rateType === "factory"
-                    ? "border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400"
-                    : formData.rateType === "ghat"
-                    ? "border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400"
-                    : autoCls
-                }`}>
-                  {formData.rateType ? rateTypeLabel : "—"}
-                </div>
-              </Field>
-            </div>
-
-            <div
-              className="rounded-xl px-4 py-3 flex items-center justify-between"
-              style={{ background: "rgba(59,130,246,0.06)", border: "1px dashed rgba(59,130,246,0.3)" }}
-            >
-              <span className="text-[9px] font-black uppercase tracking-widest text-blue-500">Landing Rate</span>
-              <span className="text-lg font-black text-blue-600 dark:text-blue-400">
-                ৳ {(formData.totalCost || 0).toLocaleString()}
-              </span>
-            </div>
+            <Field label="Date">
+              <input
+                type="date"
+                value={formData.date || ""}
+                onChange={(e) => setFormData((p) => ({ ...p, date: e.target.value }))}
+                required
+                className={inputCls}
+              />
+            </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Truck Fair By">
-                <div className={autoCls}>
-                  {formData.truckFairType === "retailer" ? "Retailer" : "Dealer"}
-                </div>
-              </Field>
-              <Field label="Truck Fair (৳)">
-                <div className={autoCls}>
-                  {formData.truckFair
-                    ? `${isRetailerTruck ? "−" : ""} ৳ ${Number(formData.truckFair).toLocaleString()}`
-                    : "—"}
-                </div>
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Previous Due (৳)">
-                <div className={autoCls}>
-                  {formData.previousDue ? `৳ ${Number(formData.previousDue).toLocaleString()}` : "—"}
-                </div>
-              </Field>
-              <Field label="Cash Collection / Deposit (৳)">
+              <Field label="Deposit (৳)">
                 <div className={autoCls}>
                   {formData.cashCollection ? `৳ ${Number(formData.cashCollection).toLocaleString()}` : "—"}
                 </div>
               </Field>
-            </div>
-
-            <div
-              className="rounded-xl px-4 py-3.5 flex items-center justify-between gap-3"
-              style={{
-                background: "linear-gradient(135deg, #040d1a 0%, #0a1a35 60%, #061020 100%)",
-                border: "1px solid rgba(59,130,246,0.1)",
-              }}
-            >
-              <div>
-                <p className="text-[8px] font-black uppercase tracking-[0.18em] mb-1" style={{ color: "rgba(96,165,250,0.6)" }}>
-                  total Balance
-                </p>
-                <p className="text-2xl font-black text-white tracking-tight leading-none">
-                  ৳ {(formData.partyBalance || 0).toLocaleString()}
-                </p>
-                <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-1">
-                  <span className="text-[9px] font-semibold" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    Cost ৳ {(formData.totalCost || 0).toLocaleString()}
-                  </span>
-                  <span className="text-[9px] font-semibold" style={{ color: "rgba(248,113,113,0.7)" }}>
-                    Due ৳ {(formData.previousDue || 0).toLocaleString()}
-                  </span>
-                  <span className="text-[9px] font-semibold" style={{ color: "rgba(52,211,153,0.7)" }}>
-                    Deposit ৳ {(formData.cashCollection || 0).toLocaleString()}
-                  </span>
-                  <span className="text-[9px] font-semibold" style={{ color: "rgba(148,163,184,0.5)" }}>
-                    Truck {isRetailerTruck ? "−" : ""} ৳ {(formData.truckFair || 0).toLocaleString()} ({isRetailerTruck ? "Retailer" : "Dealer"})
-                  </span>
+              <Field label="Rest Amount (৳)">
+                <div className={autoCls}>
+                  {formData.partyBalance ? `৳ ${Number(formData.partyBalance).toLocaleString()}` : "—"}
                 </div>
-              </div>
+              </Field>
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-0.5 pb-1">

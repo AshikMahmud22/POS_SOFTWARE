@@ -1,6 +1,6 @@
 export interface IParty {
   _id?: string;
-  name: string;
+  name?: string;
   retailerName: string;
   proprietorName: string;
   address: string;
