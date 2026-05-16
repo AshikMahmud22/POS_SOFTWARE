@@ -1,6 +1,7 @@
 import React from "react";
 import { IRetailerEntry } from "../../../types/retailer";
 import { ICompanyEntry } from "../../../types/companies";
+import { IParty } from "../../../types/party";
 import { MONTHS, inputCls, readonlyCls } from "./RetailerFormTypes";
 
 interface Props {
@@ -10,17 +11,26 @@ interface Props {
   year: string;
   onDayChange: (val: string) => void;
   onYearChange: (val: string) => void;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
+  handlePartySelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleCompanySelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleSubcategorySelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   uniqueCompanyNames: string[];
+  parties: IParty[];
   landingRate: number;
   maxBags: number;
+  availableFactory: number;
+  availableGhat: number;
   ratePrice: number;
   onRatePriceChange: (val: number) => void;
 }
 
-const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({
+  label,
+  children,
+}) => (
   <div className="space-y-1">
     <label className="block text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 ml-0.5">
       {label}
@@ -37,11 +47,15 @@ const RetailerFormFields: React.FC<Props> = ({
   onDayChange,
   onYearChange,
   handleChange,
+  handlePartySelect,
   handleCompanySelect,
   handleSubcategorySelect,
   uniqueCompanyNames,
+  parties,
   landingRate,
   maxBags,
+  availableFactory,
+  availableGhat,
   ratePrice,
   onRatePriceChange,
 }) => {
@@ -53,14 +67,23 @@ const RetailerFormFields: React.FC<Props> = ({
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Retailer Name">
-            <input
-              name="retailerName"
-              value={formData.retailerName || ""}
-              onChange={handleChange}
-              placeholder="Al-Amin Store"
-              required
+            <select
+              onChange={handlePartySelect}
+              value={
+                parties.find(
+                  (p) => (p.retailerName || p.name) === formData.retailerName,
+                )?._id || ""
+              }
               className={inputCls}
-            />
+              required
+            >
+              <option value="">Select Retailer</option>
+              {parties.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.retailerName || p.name}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Proprietor Name">
             <input
@@ -68,7 +91,6 @@ const RetailerFormFields: React.FC<Props> = ({
               value={formData.proprietorName || ""}
               onChange={handleChange}
               placeholder="Md. Rahim"
-              required
               className={inputCls}
             />
           </Field>
@@ -88,10 +110,14 @@ const RetailerFormFields: React.FC<Props> = ({
               value={formData.mobile || ""}
               onChange={(e) => {
                 const v = e.target.value.replace(/[^0-9]/g, "");
-                handleChange({ ...e, target: { ...e.target, name: "mobile", value: v } });
+                handleChange({
+                  ...e,
+                  target: { ...e.target, name: "mobile", value: v },
+                });
               }}
               placeholder="01700000000"
               maxLength={11}
+              inputMode="numeric"
               className={inputCls}
             />
           </Field>
@@ -112,7 +138,9 @@ const RetailerFormFields: React.FC<Props> = ({
             >
               <option value="">Select Company</option>
               {uniqueCompanyNames.map((name) => (
-                <option key={name} value={name}>{name}</option>
+                <option key={name} value={name}>
+                  {name}
+                </option>
               ))}
             </select>
           </Field>
@@ -125,31 +153,45 @@ const RetailerFormFields: React.FC<Props> = ({
               className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <option value="">Select Subcategory</option>
-              {Array.from(new Set(filteredEntries.map((c) => c.subcategory))).map((sub) => (
-                <option key={sub} value={sub}>{sub}</option>
+              {Array.from(
+                new Set(filteredEntries.map((c) => c.subcategory)),
+              ).map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
               ))}
             </select>
           </Field>
           <Field label="Category">
             <div className={readonlyCls}>
-              {formData.category || <span className="text-orange-300/50 ">Auto filled</span>}
+              {formData.category || (
+                <span className="opacity-40">Auto filled</span>
+              )}
             </div>
           </Field>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Field label="Factory Bags">
-            <div className={readonlyCls}>
-              {formData.doFactoryBags != null && formData.doFactoryBags !== 0
-                ? `${Number(formData.doFactoryBags).toLocaleString()} Bags`
-                : <span className="text-orange-300/50">Auto filled</span>}
+          <Field label="Factory Available">
+            <div
+              className={`${readonlyCls} ${availableFactory === 0 ? "opacity-50" : ""}`}
+            >
+              {formData.companyId ? (
+                `${availableFactory} Bags`
+              ) : (
+                <span className="opacity-40">Auto filled</span>
+              )}
             </div>
           </Field>
-          <Field label="Ghat Bags">
-            <div className={readonlyCls}>
-              {formData.doGhatBags != null && formData.doGhatBags !== 0
-                ? `${Number(formData.doGhatBags).toLocaleString()} Bags`
-                : <span className="text-orange-300/50">Auto filled</span>}
+          <Field label="Ghat Available">
+            <div
+              className={`${readonlyCls} ${availableGhat === 0 ? "opacity-50" : ""}`}
+            >
+              {formData.companyId ? (
+                `${availableGhat} Bags`
+              ) : (
+                <span className="opacity-40">Auto filled</span>
+              )}
             </div>
           </Field>
           <Field label="Rate Type">
@@ -272,7 +314,9 @@ const RetailerFormFields: React.FC<Props> = ({
               className={inputCls}
             >
               {MONTHS.map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
           </Field>
@@ -282,7 +326,8 @@ const RetailerFormFields: React.FC<Props> = ({
               value={day}
               onChange={(e) => {
                 const v = e.target.value;
-                if (v === "" || (Number(v) >= 1 && Number(v) <= 31)) onDayChange(v);
+                if (v === "" || (Number(v) >= 1 && Number(v) <= 31))
+                  onDayChange(v);
               }}
               min={1}
               max={31}
@@ -307,7 +352,9 @@ const RetailerFormFields: React.FC<Props> = ({
             {formData.date ? (
               <>
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400">{formData.date}</p>
+                <p className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400">
+                  {formData.date}
+                </p>
               </>
             ) : (
               <p className="text-[10px] text-slate-400">No date set</p>

@@ -41,7 +41,7 @@ const PartyPage: React.FC = () => {
       (p.retailerName || "").toLowerCase().includes(q) ||
       (p.proprietorName || "").toLowerCase().includes(q) ||
       (p.mobile || "").includes(q) ||
-      (p.location || "").toLowerCase().includes(q)
+      (p.address || "").toLowerCase().includes(q)
     );
   });
 
@@ -97,7 +97,7 @@ const PartyPage: React.FC = () => {
           type="text"
           value={search}
           onChange={handleSearchChange}
-          placeholder="Search by name, mobile, location..."
+          placeholder="Search by name, mobile, address..."
           className="w-full pl-10 pr-10 py-3 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-gray-400 dark:placeholder:text-gray-600 shadow-sm"
         />
         {search && (

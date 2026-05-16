@@ -7,9 +7,15 @@ import { useAuth } from "../../../lib/AuthProvider";
 import { IRetailerEntry } from "../../../types/retailer";
 import { ICompanyEntry, ICompanyResponse } from "../../../types/companies";
 import { getCompanyEntries } from "../../../services/companyService";
-import { addRetailerEntry, updateRetailerEntry, getRetailerEntry } from "../../../services/retailerService";
+import {
+  addRetailerEntry,
+  updateRetailerEntry,
+  getRetailerEntry,
+} from "../../../services/retailerService";
 import { MONTHS, MONTH_NUMBER, EMPTY_RETAILER_FORM } from "./RetailerFormTypes";
 import RetailerFormFields from "./RetailerFormFields";
+import { getParties } from "../../../services/partyService";
+import { IParty } from "../../../types/party";
 
 const RetailerFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,25 +23,33 @@ const RetailerFormPage: React.FC = () => {
   const { user } = useAuth();
   const isEditing = !!id;
 
-  const [formData, setFormData] = useState<IRetailerEntry>({ ...EMPTY_RETAILER_FORM });
+  const [formData, setFormData] = useState<IRetailerEntry>({
+    ...EMPTY_RETAILER_FORM,
+  });
   const [companies, setCompanies] = useState<ICompanyEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<ICompanyEntry[]>([]);
   const [uniqueCompanyNames, setUniqueCompanyNames] = useState<string[]>([]);
+  const [parties, setParties] = useState<IParty[]>([]);
   const [loading, setLoading] = useState(false);
   const [day, setDay] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [ratePrice, setRatePrice] = useState<number>(0);
-  const hasFetchedCompanies = useRef(false);
+  const [availableFactory, setAvailableFactory] = useState<number>(0);
+  const [availableGhat, setAvailableGhat] = useState<number>(0);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!hasFetchedCompanies.current) {
-      hasFetchedCompanies.current = true;
+    if (!hasFetched.current) {
+      hasFetched.current = true;
       getCompanyEntries({ limit: 1000 }).then((res: ICompanyResponse) => {
         if (res.success) {
           setCompanies(res.data);
           const names = Array.from(new Set(res.data.map((c) => c.companyName)));
           setUniqueCompanyNames(names);
         }
+      });
+      getParties().then((res) => {
+        if (res.success) setParties(res.data);
       });
     }
   }, []);
@@ -54,7 +68,20 @@ const RetailerFormPage: React.FC = () => {
               setDay(p[2] || "");
             }
             if (entry.companyName) {
-              setFilteredEntries(companies.filter((c) => c.companyName === entry.companyName));
+              setFilteredEntries(
+                companies.filter((c) => c.companyName === entry.companyName),
+              );
+            }
+            if (entry.companyId && entry.subcategory) {
+              const companyEntry = companies.find(
+                (c) =>
+                  String(c._id) === entry.companyId &&
+                  c.subcategory === entry.subcategory,
+              );
+              if (companyEntry) {
+                setAvailableFactory(Number(companyEntry.dhakaDo.bag));
+                setAvailableGhat(Number(companyEntry.ghatDo.bag));
+              }
             }
           }
         })
@@ -70,6 +97,8 @@ const RetailerFormPage: React.FC = () => {
       setYear(new Date().getFullYear().toString());
       setDay("");
       setRatePrice(0);
+      setAvailableFactory(0);
+      setAvailableGhat(0);
     }
   }, [id, isEditing, user, companies]);
 
@@ -83,20 +112,35 @@ const RetailerFormPage: React.FC = () => {
     }
   }, [formData.month, day, year]);
 
-  const maxBags = formData.rateType === "factory"
-    ? Number(formData.doFactoryBags) || 0
-    : Number(formData.doGhatBags) || 0;
-
+  const maxBags =
+    formData.rateType === "factory" ? availableFactory : availableGhat;
   const landingRate = ratePrice * Number(formData.quantity);
   const truckFairAmount = Number(formData.truckFair) || 0;
-  const truckFairAdjusted = formData.truckFairType === "retailer" ? -truckFairAmount : 0;
+  const truckFairAdjusted =
+    formData.truckFairType === "retailer" ? -truckFairAmount : 0;
   const totalCost = landingRate;
-  const rawRestAmount = totalCost + Number(formData.previousDue) + truckFairAdjusted - Number(formData.deposit);
+  const rawRestAmount =
+    totalCost +
+    Number(formData.previousDue) +
+    truckFairAdjusted -
+    Number(formData.deposit);
   const restTotalAmount = rawRestAmount < 0 ? 0 : rawRestAmount;
 
   useEffect(() => {
     setFormData((prev) => ({ ...prev, totalCost, restTotalAmount }));
   }, [totalCost, restTotalAmount]);
+
+  const handlePartySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = parties.find((p) => String(p._id) === e.target.value);
+    if (!selected) return;
+    setFormData((prev) => ({
+      ...prev,
+      retailerName: selected.retailerName || selected.name,
+      proprietorName: selected.proprietorName || "",
+      address: selected.address || "",
+      mobile: selected.mobile || "",
+    }));
+  };
 
   const handleCompanySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedName = e.target.value;
@@ -115,16 +159,24 @@ const RetailerFormPage: React.FC = () => {
       quantity: 0,
     }));
     setRatePrice(0);
+    setAvailableFactory(0);
+    setAvailableGhat(0);
   };
 
   const handleSubcategorySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const matches = filteredEntries.filter((c) => c.subcategory === e.target.value);
+    const matches = filteredEntries.filter(
+      (c) => c.subcategory === e.target.value,
+    );
     const selected = matches.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     })[0];
     if (!selected) return;
+
+    setAvailableFactory(Number(selected.dhakaDo.bag));
+    setAvailableGhat(Number(selected.ghatDo.bag));
+
     setFormData((prev) => ({
       ...prev,
       companyId: String(selected._id) || "",
@@ -139,11 +191,17 @@ const RetailerFormPage: React.FC = () => {
     setRatePrice(0);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     const numeric = ["quantity", "previousDue", "deposit", "truckFair"];
     if (name === "rateType") {
-      setFormData((prev) => ({ ...prev, rateType: value as "factory" | "ghat", quantity: 0 }));
+      setFormData((prev) => ({
+        ...prev,
+        rateType: value as "factory" | "ghat",
+        quantity: 0,
+      }));
       return;
     }
     setFormData((prev) => ({
@@ -195,7 +253,9 @@ const RetailerFormPage: React.FC = () => {
               {isEditing ? "Edit Entry" : "New Entry"}
             </h1>
             <p className="text-gray-500 font-bold text-xs mt-0.5 uppercase tracking-widest">
-              {isEditing ? "Update retailer record" : "Create a new retailer record"}
+              {isEditing
+                ? "Update retailer record"
+                : "Create a new retailer record"}
             </p>
           </div>
         </div>
@@ -205,15 +265,19 @@ const RetailerFormPage: React.FC = () => {
             formData={formData}
             filteredEntries={filteredEntries}
             uniqueCompanyNames={uniqueCompanyNames}
+            parties={parties}
             day={day}
             year={year}
             onDayChange={setDay}
             onYearChange={setYear}
             handleChange={handleChange}
+            handlePartySelect={handlePartySelect}
             handleCompanySelect={handleCompanySelect}
             handleSubcategorySelect={handleSubcategorySelect}
             landingRate={landingRate}
             maxBags={maxBags}
+            availableFactory={availableFactory}
+            availableGhat={availableGhat}
             ratePrice={ratePrice}
             onRatePriceChange={setRatePrice}
           />
@@ -226,7 +290,9 @@ const RetailerFormPage: React.FC = () => {
               ৳ {restTotalAmount.toLocaleString()}
             </span>
             <span className="text-[9px] text-slate-400">
-              Landing Rate + Prev Due {formData.truckFairType === "retailer" ? "− Truck Fair" : ""} − Deposit
+              Landing Rate + Prev Due{" "}
+              {formData.truckFairType === "retailer" ? "− Truck Fair" : ""} −
+              Deposit
             </span>
           </div>
 
@@ -234,7 +300,7 @@ const RetailerFormPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate("/retailer")}
-              className="py-3 rounded-2xl bg-slate-200 dark:bg-slate-800 text-slate-500 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors "
+              className="py-3 rounded-2xl bg-slate-200 dark:bg-slate-800 text-slate-500 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2, MapPin, Users, Phone, Store, User } from "lucide-react";
+import { Edit2, Trash2, Users, Phone, Store, User } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { IParty } from "../../types/party";
 import { deleteParty } from "../../services/partyService";
@@ -53,7 +53,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
 
   return (
     <div className="w-full rounded-3xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-x-auto">
-      <table className="text-center border-collapse min-w-[800px] w-full text-nowrap ">
+      <table className="text-center border-collapse min-w-[700px] w-full text-nowrap">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50 text-blue-950 dark:text-blue-300 uppercase text-[10px] font-black italic">
             <th className="px-4 py-3 border-b dark:border-gray-800 w-12">#</th>
@@ -61,7 +61,6 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
             <th className="px-4 py-3 border-b dark:border-gray-800">Retailer Name</th>
             <th className="px-4 py-3 border-b dark:border-gray-800">Proprietor</th>
             <th className="px-4 py-3 border-b dark:border-gray-800">Address</th>
-            <th className="px-4 py-3 border-b dark:border-gray-800">Location</th>
             <th className="px-4 py-3 border-b dark:border-gray-800">Mobile</th>
             <th className="px-4 py-3 border-b dark:border-gray-800 text-center w-24">Actions</th>
           </tr>
@@ -108,14 +107,6 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
-                    <MapPin size={11} className="text-blue-400 flex-shrink-0" />
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                      {item.location || "—"}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-1.5">
                     <Phone size={11} className="text-emerald-400 flex-shrink-0" />
                     <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
                       {item.mobile || "—"}
@@ -142,7 +133,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ data, onEdit, refreshData }) =>
             ))
           ) : (
             <tr>
-              <td colSpan={8} className="px-4 py-16 text-center">
+              <td colSpan={7} className="px-4 py-16 text-center">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     <Users size={20} className="text-gray-400" />

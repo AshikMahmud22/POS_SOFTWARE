@@ -25,7 +25,6 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
 
 const EMPTY_FORM = {
   name: "",
-  location: "",
   retailerName: "",
   proprietorName: "",
   address: "",
@@ -41,7 +40,6 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, edi
     if (editingData) {
       setFormData({
         name: editingData.name || "",
-        location: editingData.location || "",
         retailerName: editingData.retailerName || "",
         proprietorName: editingData.proprietorName || "",
         address: editingData.address || "",
@@ -118,28 +116,16 @@ const PartyModal: React.FC<PartyModalProps> = ({ isOpen, onClose, onSuccess, edi
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 bg-slate-50 dark:bg-[#0c1525]">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Party Name">
-              <input
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g. ABC Trading"
-                required
-                className={inputCls}
-              />
-            </Field>
-            <Field label="Location">
-              <input
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g. Dhaka"
-                required
-                className={inputCls}
-              />
-            </Field>
-          </div>
+          <Field label="Party Name">
+            <input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g. ABC Trading"
+              required
+              className={inputCls}
+            />
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Retailer Name">

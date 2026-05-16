@@ -125,7 +125,8 @@ const CompanyFormPage: React.FC = () => {
     const latest = matches.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      if (dateB !== dateA) return dateB - dateA;
+      return String(b._id || "").localeCompare(String(a._id || ""));
     })[0];
 
     const latestAdvDoQty = Number(latest.advDoQty) || 0;

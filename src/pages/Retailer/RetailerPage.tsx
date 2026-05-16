@@ -106,8 +106,7 @@ const RetailerPage: React.FC = () => {
 
   const itemsPerPage = 10;
   const totalPages: number = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
-  const sortedEntries = [...filteredEntries].reverse();
-  const currentData: IRetailerEntry[] = sortedEntries.slice(
+  const currentData: IRetailerEntry[] = filteredEntries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
