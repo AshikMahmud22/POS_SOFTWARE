@@ -133,13 +133,13 @@ const RetailerFormPage: React.FC = () => {
   const handlePartySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = parties.find((p) => String(p._id) === e.target.value);
     if (!selected) return;
-    setFormData((prev) => ({
-      ...prev,
-      retailerName: selected.retailerName || selected.name,
-      proprietorName: selected.proprietorName || "",
-      address: selected.address || "",
-      mobile: selected.mobile || "",
-    }));
+   setFormData((prev) => ({
+  ...prev,
+  retailerName: selected.retailerName || "",
+  proprietorName: selected.proprietorName || "",
+  address: selected.mobile || "",
+  mobile: selected.mobile || "",
+}));
   };
 
   const handleCompanySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
